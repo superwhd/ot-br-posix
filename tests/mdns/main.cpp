@@ -54,32 +54,7 @@ static struct Context
 
 int RunMainloop(void)
 {
-    int rval = 0;
-
-    while (true)
-    {
-        MainloopContext mainloop;
-
-        mainloop.mMaxFd   = -1;
-        mainloop.mTimeout = {INT_MAX, INT_MAX};
-        FD_ZERO(&mainloop.mReadFdSet);
-        FD_ZERO(&mainloop.mWriteFdSet);
-        FD_ZERO(&mainloop.mErrorFdSet);
-
-        MainloopManager::GetInstance().Update(mainloop);
-        rval = select(mainloop.mMaxFd + 1, &mainloop.mReadFdSet, &mainloop.mWriteFdSet, &mainloop.mErrorFdSet,
-                      (mainloop.mTimeout.tv_sec == INT_MAX ? nullptr : &mainloop.mTimeout));
-
-        if (rval < 0)
-        {
-            perror("select");
-            break;
-        }
-
-        MainloopManager::GetInstance().Process(mainloop);
-    }
-
-    return rval;
+    return MainloopManager::GetInstance().RunMainloop();
 }
 
 void PublishSingleServiceWithCustomHost(void *aContext, Mdns::Publisher::State aState)

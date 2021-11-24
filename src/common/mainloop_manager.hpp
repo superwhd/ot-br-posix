@@ -38,9 +38,13 @@
 
 #include <openthread/openthread-system.h>
 
+#include <atomic>
 #include <list>
+#include <memory>
 
 #include "common/mainloop.hpp"
+#include "common/task_runner.hpp"
+#include "common/time.hpp"
 #include "ncp/ncp_openthread.hpp"
 
 namespace otbr {
@@ -52,21 +56,13 @@ namespace otbr {
 class MainloopManager
 {
 public:
-    /**
-     * The constructor to initialize the mainloop manager.
-     *
-     */
     MainloopManager() = default;
 
     /**
      * This method returns the singleton instance of the mainloop manager.
      *
      */
-    static MainloopManager &GetInstance(void)
-    {
-        static MainloopManager sMainloopManager;
-        return sMainloopManager;
-    }
+    static MainloopManager &GetInstance(void);
 
     /**
      * This method adds a mainloop processors to the mainloop managger.
@@ -85,22 +81,26 @@ public:
     void RemoveMainloopProcessor(MainloopProcessor *aMainloopProcessor);
 
     /**
-     * This method updates the mainloop context of all mainloop processors.
+     * Runs the mainloop and blocks current thread until unrecoverable errors
+     * are encountered or `BreakMainloop()` is invoked.
      *
-     * @param[inout] aMainloop  A reference to the mainloop to be updated.
+     * @param[in] aMaxPollTimeout  The maximum polling timeout value for one iteration.
+     *
+     * @returns 0 if this method is stopped by `BreakMainloop()`, -1 if the the system
+     *          function `select()` fails and `errno` is set to indicate the error.
      *
      */
-    void Update(MainloopContext &aMainloop);
+    int RunMainloop(Seconds aMaxPollTimeout = Seconds(10));
 
     /**
-     * This method processes mainloop events of all mainloop processors.
-     *
-     * @param[in] aMainloop  A reference to the mainloop context.
+     * Force breaks function `RunMainloop()`. It's safe to call this method from multiple
+     * thread simultaneously.
      *
      */
-    void Process(const MainloopContext &aMainloop);
+    void BreakMainloop();
 
 private:
+    std::atomic<bool>              mShouldBreak{false};
     std::list<MainloopProcessor *> mMainloopProcessorList;
 };
 } // namespace otbr

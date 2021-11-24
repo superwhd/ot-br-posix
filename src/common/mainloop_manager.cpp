@@ -27,9 +27,20 @@
  */
 #include <assert.h>
 
+#include <memory>
+#include <mutex>
+
 #include "common/mainloop_manager.hpp"
+#include "common/task_runner.hpp"
 
 namespace otbr {
+
+MainloopManager &MainloopManager::GetInstance(void)
+{
+    static MainloopManager sMainloopManager;
+
+    return sMainloopManager;
+}
 
 void MainloopManager::AddMainloopProcessor(MainloopProcessor *aMainloopProcessor)
 {
@@ -42,19 +53,44 @@ void MainloopManager::RemoveMainloopProcessor(MainloopProcessor *aMainloopProces
     mMainloopProcessorList.remove(aMainloopProcessor);
 }
 
-void MainloopManager::Update(MainloopContext &aMainloop)
+int MainloopManager::RunMainloop(Seconds aMaxPollTimeout)
 {
-    for (auto &mainloopProcessor : mMainloopProcessorList)
+    int rval = 0;
+
+    while (!mShouldBreak.load())
     {
-        mainloopProcessor->Update(aMainloop);
+        otbr::MainloopContext mainloop;
+
+        mainloop.mMaxFd   = -1;
+        mainloop.mTimeout = ToTimeval(aMaxPollTimeout);
+        FD_ZERO(&mainloop.mReadFdSet);
+        FD_ZERO(&mainloop.mWriteFdSet);
+        FD_ZERO(&mainloop.mErrorFdSet);
+
+        for (auto &mainloopProcessor : mMainloopProcessorList)
+        {
+            mainloopProcessor->Update(mainloop);
+        }
+
+        rval = select(mainloop.mMaxFd + 1, &mainloop.mReadFdSet, &mainloop.mWriteFdSet, &mainloop.mErrorFdSet,
+                      &mainloop.mTimeout);
+        if (rval < 0)
+        {
+            break;
+        }
+
+        for (auto &mainloopProcessor : mMainloopProcessorList)
+        {
+            mainloopProcessor->Process(mainloop);
+        }
     }
+
+    return rval;
 }
 
-void MainloopManager::Process(const MainloopContext &aMainloop)
+void MainloopManager::BreakMainloop()
 {
-    for (auto &mainloopProcessor : mMainloopProcessorList)
-    {
-        mainloopProcessor->Process(aMainloop);
-    }
+    mShouldBreak.store(true);
 }
+
 } // namespace otbr
