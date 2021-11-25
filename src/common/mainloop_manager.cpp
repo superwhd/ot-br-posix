@@ -88,7 +88,7 @@ int MainloopManager::RunMainloop(Seconds aMaxPollTimeout)
     return rval;
 }
 
-void MainloopManager::BreakMainloop()
+void MainloopManager::BreakMainloop(void)
 {
     mShouldBreak.store(true);
 }

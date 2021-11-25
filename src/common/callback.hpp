@@ -58,7 +58,7 @@ private:
 public:
     template <typename T>
     OnceCallback(T &&func)
-        : mFunc(std::move(func))
+        : mFunc(std::forward<T>(func))
     {
     }
 
