@@ -35,6 +35,14 @@ namespace otbr {
 
 template <class T> class OnceCallback;
 
+template <template <typename...> class, typename...> struct is_instantiation : public std::false_type
+{
+};
+
+template <template <typename...> class U, typename... T> struct is_instantiation<U, U<T...>> : public std::true_type
+{
+};
+
 /**
  * A callback which can be invoked at most once.
  *
@@ -56,7 +64,7 @@ private:
     using FuncType = std::function<R(Args...)>;
 
 public:
-    template <typename T>
+    template <typename T, typename P = typename std::enable_if<!is_instantiation<OnceCallback, T>::value>::type>
     OnceCallback(T &&func)
         : mFunc(std::forward<T>(func))
     {
@@ -64,8 +72,8 @@ public:
 
     OnceCallback(const OnceCallback &) = delete;
     OnceCallback &operator=(const OnceCallback &) = delete;
-    OnceCallback(OnceCallback &&) noexcept        = default;
-    OnceCallback &operator=(OnceCallback &&) noexcept = default;
+    OnceCallback(OnceCallback &&)                 = default;
+    OnceCallback &operator=(OnceCallback &&) = default;
 
     R operator()(Args...) const &
     {
