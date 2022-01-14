@@ -132,8 +132,9 @@ void ControllerOpenThread::Init(void)
         VerifyOrExit(result == OT_ERROR_NONE, error = OTBR_ERROR_OPENTHREAD);
     }
 
+    // TODO(superwhd) Turn on SRPL when needed
 #if OTBR_ENABLE_SRP_ADVERTISING_PROXY
-    otSrpServerSetEnabled(mInstance, /* aEnabled */ true);
+//    otSrpServerSetEnabled(mInstance, /* aEnabled */ true);
 #endif
 
     mThreadHelper = std::unique_ptr<otbr::agent::ThreadHelper>(new otbr::agent::ThreadHelper(mInstance, this));

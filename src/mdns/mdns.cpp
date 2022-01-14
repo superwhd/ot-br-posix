@@ -36,11 +36,14 @@
 #include "mdns/mdns.hpp"
 
 #include <assert.h>
+#include "openthread/platform/dso_transport.h"
+#include "openthread/platform/srp_replication.h"
 
 #include <algorithm>
 #include <functional>
 
 #include "common/code_utils.hpp"
+#include "openthread/instance.h"
 #include "utils/dns_utils.hpp"
 
 namespace otbr {
@@ -123,6 +126,8 @@ uint64_t Publisher::AddSubscriptionCallbacks(Publisher::DiscoveredServiceInstanc
 
     assert(subscriberId > 0);
 
+    otbrLogInfo("adding subscriber id: %llu", subscriberId);
+
     mDiscoveredCallbacks.emplace(subscriberId, std::make_pair(std::move(aInstanceCallback), std::move(aHostCallback)));
     return subscriberId;
 }
@@ -142,11 +147,28 @@ void Publisher::OnServiceResolved(const std::string &aType, const DiscoveredInst
         DnsUtils::CheckHostnameSanity(aInstanceInfo.mHostName);
     }
 
+    otbrLogInfo("Number of callbacks %d", mDiscoveredCallbacks.size());
+
+    std::vector<uint64_t> subscriberIds;
+    subscriberIds.reserve(mDiscoveredCallbacks.size());
     for (const auto &subCallback : mDiscoveredCallbacks)
     {
-        if (subCallback.second.first != nullptr)
+        subscriberIds.push_back(subCallback.first);
+    }
+    for (const auto &subscriberId : subscriberIds)
+    {
+        auto it = mDiscoveredCallbacks.find(subscriberId);
+        if (it != mDiscoveredCallbacks.end())
         {
-            subCallback.second.first(aType, aInstanceInfo);
+            const auto &subCallback = *it;
+            if (subCallback.second.first != nullptr)
+            {
+                //                otbrLogInfo("subscriber id %llu %d %d %p %p", subCallback.first,
+                //                bool(subCallback.second.first),
+                //                            bool(subCallback.second.second), &subCallback.second.first,
+                //                            &subCallback.second.second);
+                subCallback.second.first(aType, aInstanceInfo);
+            }
         }
     }
 }

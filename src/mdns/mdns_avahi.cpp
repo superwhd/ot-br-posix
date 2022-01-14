@@ -1044,16 +1044,16 @@ void PublisherAvahi::ServiceSubscription::HandleResolveResult(AvahiServiceResolv
     DiscoveredInstanceInfo instanceInfo;
     bool                   resolved = false;
 
+    VerifyOrExit(
+        aEvent == AVAHI_RESOLVER_FOUND,
+        otbrLogErr("failed to resolve service: %s", avahi_strerror(avahi_client_errno(mPublisherAvahi->mClient))));
+    VerifyOrExit(aHostName != nullptr, otbrLogErr("host name is null"));
+
     avahi_address_snprint(addrBuf, sizeof(addrBuf), aAddress);
     otbrLogInfo("resolve service reply: protocol %d event %d %s.%s.%s = host %s address %s port %d flags %d", aProtocol,
                 aEvent, aName, aType, aDomain, aHostName, addrBuf, aPort, aFlags);
 
     RemoveServiceResolver(aServiceResolver);
-
-    VerifyOrExit(
-        aEvent == AVAHI_RESOLVER_FOUND,
-        otbrLogErr("failed to resolve service: %s", avahi_strerror(avahi_client_errno(mPublisherAvahi->mClient))));
-    VerifyOrExit(aHostName != nullptr, otbrLogErr("host name is null"));
 
     instanceInfo.mNetifIndex = static_cast<uint32_t>(aInterfaceIndex);
     instanceInfo.mName       = aName;

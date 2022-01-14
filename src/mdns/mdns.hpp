@@ -63,7 +63,7 @@ namespace Mdns {
  * This interface defines the functionality of mDNS publisher.
  *
  */
-class Publisher : private NonCopyable
+class Publisher : public SingletonRegistry<Publisher>
 {
 public:
     /**
@@ -316,6 +316,11 @@ public:
      *
      */
     void RemoveSubscriptionCallbacks(uint64_t aSubscriberId);
+
+    explicit Publisher()
+        : SingletonRegistry<Publisher>(this)
+    {
+    }
 
     virtual ~Publisher(void) = default;
 
