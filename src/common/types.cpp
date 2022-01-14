@@ -86,6 +86,20 @@ void Ip6Address::CopyFrom(const struct in6_addr &aIn6Addr)
     memcpy(m8, aIn6Addr.s6_addr, sizeof(aIn6Addr.s6_addr));
 }
 
+void Ip6Address::CopyTo(struct in_addr &aInAddr)
+{
+    static_assert(sizeof(m8[0]) * 4 == sizeof(aInAddr.s_addr), "invalid IPv6 address size");
+    memcpy(&aInAddr.s_addr, m8 + 12, sizeof(aInAddr.s_addr));
+}
+
+void Ip6Address::CopyFrom(const struct in_addr &aInAddr)
+{
+    static_assert(sizeof(m8[0]) * 4 == sizeof(aInAddr.s_addr), "invalid IPv6 address size");
+    memset(m8, 0, sizeof(m8));
+    memcpy(m8 + 12, &aInAddr.s_addr, sizeof(aInAddr.s_addr));
+    memset(m16 + 5, 0xff, sizeof(m16[5]));
+}
+
 otbrError Ip6Address::FromString(const char *aStr, Ip6Address &aAddr)
 {
     int ret;

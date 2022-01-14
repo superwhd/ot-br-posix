@@ -39,6 +39,7 @@
 #include <openthread/logging.h>
 #include <openthread/nat64.h>
 #include <openthread/srp_server.h>
+#include <openthread/srp_replication.h>
 #include <openthread/tasklet.h>
 #include <openthread/thread.h>
 #include <openthread/thread_ftd.h>
@@ -222,15 +223,16 @@ void ControllerOpenThread::Init(void)
         VerifyOrExit(result == OT_ERROR_NONE, error = OTBR_ERROR_OPENTHREAD);
     }
 
-#if OTBR_ENABLE_SRP_ADVERTISING_PROXY
-#if OTBR_ENABLE_SRP_SERVER_AUTO_ENABLE_MODE
-    // Let SRP server use auto-enable mode. The auto-enable mode delegates the control of SRP server to the Border
-    // Routing Manager. SRP server automatically starts when bi-directional connectivity is ready.
-    otSrpServerSetAutoEnableMode(mInstance, /* aEnabled */ true);
-#else
-    otSrpServerSetEnabled(mInstance, /* aEnabled */ true);
-#endif
-#endif
+    // TODO(superwhd) Turn on SRPL when needed
+//#if OTBR_ENABLE_SRP_ADVERTISING_PROXY
+//#if OTBR_ENABLE_SRP_SERVER_AUTO_ENABLE_MODE
+//    // Let SRP server use auto-enable mode. The auto-enable mode delegates the control of SRP server to the Border
+//    // Routing Manager. SRP server automatically starts when bi-directional connectivity is ready.
+//    otSrpServerSetAutoEnableMode(mInstance, /* aEnabled */ true);
+//#else
+//    otSrpServerSetEnabled(mInstance, /* aEnabled */ true);
+//#endif
+//#endif
 
 #if !OTBR_ENABLE_FEATURE_FLAGS
     // Bring up all features when feature flags is not supported.

@@ -36,6 +36,7 @@ if(OTBR_FEATURE_FLAGS)
 endif()
 add_subdirectory(ncp)
 add_subdirectory(sdp_proxy)
+add_subdirectory(srpl_dnssd)
 add_subdirectory(trel_dnssd)
 
 if(OTBR_DBUS)

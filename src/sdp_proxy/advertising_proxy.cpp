@@ -147,6 +147,11 @@ void AdvertisingProxy::AdvertisingHandler(otSrpServerServiceUpdateId aId,
 
     error = PublishHostAndItsServices(aHost, update);
 
+    if (error == OTBR_ERROR_ABORTED)
+    {
+        error = OTBR_ERROR_NONE;
+    }
+
     if (error != OTBR_ERROR_NONE || update->mCallbackCount == 0)
     {
         mOutstandingUpdates.pop_back();
@@ -165,6 +170,10 @@ void AdvertisingProxy::OnMdnsPublishResult(otSrpServerServiceUpdateId aUpdateId,
 
         if (aError != OTBR_ERROR_NONE || update->mCallbackCount == 1)
         {
+            if (aError == OTBR_ERROR_ABORTED)
+            {
+                aError = OTBR_ERROR_NONE;
+            }
             // Erase before notifying OpenThread, because there are chances that new
             // elements may be added to `otSrpServerHandleServiceUpdateResult` and
             // the iterator will be invalidated.

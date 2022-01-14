@@ -157,7 +157,7 @@
 #define OTBR_NOOP
 #define OTBR_UNUSED_VARIABLE(variable) ((void)(variable))
 
-template <typename T, typename... Args> std::unique_ptr<T> MakeUnique(Args &&...args)
+template <typename T, typename... Args> std::unique_ptr<T> MakeUnique(Args &&... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
@@ -230,5 +230,26 @@ private:
     alignas(T) unsigned char mStorage[sizeof(T)];
     bool mHasValue = false;
 };
+
+template <typename T> class SingletonRegistry : public NonCopyable
+{
+public:
+    explicit SingletonRegistry(T *aInstance)
+    {
+        VerifyOrDie(sInstance == nullptr, std::string("There's already an instance of ") + typeid(T).name());
+        sInstance = aInstance;
+    }
+
+    static T &GetInstance()
+    {
+        VerifyOrDie(sInstance != nullptr, "The instance hasn't been created yet");
+        return *sInstance;
+    }
+
+private:
+    static T *sInstance;
+};
+
+template <typename T> T *SingletonRegistry<T>::sInstance = nullptr;
 
 #endif // OTBR_COMMON_CODE_UTILS_HPP_

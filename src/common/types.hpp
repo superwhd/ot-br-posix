@@ -53,6 +53,7 @@
 #endif
 
 #define OTBR_IP6_ADDRESS_SIZE 16
+#define OTBR_IP4_ADDRESS_SIZE 4
 #define OTBR_IP6_PREFIX_SIZE 8
 #define OTBR_IP4_ADDRESS_SIZE 4
 #define OTBR_NETWORK_KEY_SIZE 16
@@ -288,6 +289,14 @@ public:
      *
      */
     void CopyFrom(const struct in6_addr &aIn6Addr);
+
+    void CopyTo(struct in_addr &aInAddr);
+
+    void CopyFrom(const struct in_addr &aInAddr);
+
+    bool IsIpv4Mapped() const {
+        return m64[0] == 0 && m16[4] == 0 && m16[5] == 0xffff;
+    }
 
     union
     {

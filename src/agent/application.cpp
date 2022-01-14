@@ -37,6 +37,7 @@
 #include <systemd/sd-daemon.h>
 #endif
 
+#include <openthread/srp_replication.h>
 #include "agent/application.hpp"
 #include "common/code_utils.hpp"
 #include "common/mainloop_manager.hpp"
@@ -146,6 +147,7 @@ otbrError Application::Run(void)
     // allow quitting elegantly
     signal(SIGTERM, HandleSignal);
 
+
     while (!sShouldTerminate)
     {
         otbr::MainloopContext mainloop;
@@ -159,6 +161,7 @@ otbrError Application::Run(void)
         FD_ZERO(&mainloop.mErrorFdSet);
 
         MainloopManager::GetInstance().Update(mainloop);
+
 
         rval = select(mainloop.mMaxFd + 1, &mainloop.mReadFdSet, &mainloop.mWriteFdSet, &mainloop.mErrorFdSet,
                       &mainloop.mTimeout);

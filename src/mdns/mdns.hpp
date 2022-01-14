@@ -64,7 +64,7 @@ namespace Mdns {
  * This interface defines the functionality of mDNS publisher.
  *
  */
-class Publisher : private NonCopyable
+class Publisher
 {
 public:
     /**
@@ -325,6 +325,8 @@ public:
      */
     const MdnsTelemetryInfo &GetMdnsTelemetryInfo() const { return mTelemetryInfo; }
 
+    explicit Publisher(void) {}
+
     virtual ~Publisher(void) = default;
 
     /**
@@ -412,6 +414,7 @@ protected:
         }
     };
 
+    // we may need a registration ID to fetch the information of a registration.
     class ServiceRegistration : public Registration
     {
     public:
@@ -561,6 +564,19 @@ protected:
     std::map<std::string, Timepoint> mHostResolutionBeginTime;
 
     otbr::MdnsTelemetryInfo mTelemetryInfo{};
+
+public:
+    const ServiceRegistration *FindServiceRegistrationByType(const std::string &aType) const
+    {
+        for (const auto &serviceReg : mServiceRegistrations)
+        {
+            if (serviceReg.second->mType == aType)
+            {
+                return serviceReg.second.get();
+            }
+        }
+        return nullptr;
+    }
 };
 
 /**

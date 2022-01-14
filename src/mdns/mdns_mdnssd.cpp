@@ -463,8 +463,8 @@ void PublisherMDnsSd::HandleServiceRegisterResult(DNSServiceRef         aService
     OTBR_UNUSED_VARIABLE(aDomain);
 
     otbrError            error = DNSErrorToOtbrError(aError);
-    std::string          originalInstanceName;
     ServiceRegistration *serviceReg = FindServiceRegistration(aServiceRef);
+    serviceReg->mName   = aName;
 
     otbrLogInfo("Received reply for service %s.%s, serviceRef = %p", aName, aType, aServiceRef);
 
@@ -501,12 +501,19 @@ otbrError PublisherMDnsSd::PublishServiceImpl(const std::string &aHostName,
     std::string          regType           = MakeRegType(aType, sortedSubTypeList);
     DNSServiceRef        serviceRef        = nullptr;
     std::string          fullHostName;
+    const char          *hostNameCString    = nullptr;
+    const char          *serviceNameCString = nullptr;
 
     VerifyOrExit(mState == State::kReady, ret = OTBR_ERROR_INVALID_STATE);
 
     if (!aHostName.empty())
     {
-        fullHostName = MakeFullHostName(aHostName);
+        fullHostName    = MakeFullHostName(aHostName);
+        hostNameCString = fullHostName.c_str();
+    }
+    if (!aName.empty())
+    {
+        serviceNameCString = aName.c_str();
     }
 
     aCallback = HandleDuplicateServiceRegistration(aHostName, aName, aType, sortedSubTypeList, aPort, sortedTxtList,
@@ -515,12 +522,15 @@ otbrError PublisherMDnsSd::PublishServiceImpl(const std::string &aHostName,
 
     SuccessOrExit(ret = EncodeTxtData(aTxtList, txt));
     otbrLogInfo("Registering new service %s.%s.local, serviceRef = %p", aName.c_str(), regType.c_str(), serviceRef);
-    SuccessOrExit(error = DNSServiceRegister(&serviceRef, kDNSServiceFlagsNoAutoRename, kDNSServiceInterfaceIndexAny,
-                                             aName.c_str(), regType.c_str(), /* domain */ nullptr,
-                                             !aHostName.empty() ? fullHostName.c_str() : nullptr, htons(aPort),
-                                             txt.size(), txt.data(), HandleServiceRegisterResult, this));
+    otbrLogInfo("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    SuccessOrExit(error = DNSServiceRegister(&serviceRef, kDNSServiceFlagsNoAutoRename,
+                                             kDNSServiceInterfaceIndexAny, serviceNameCString, regType.c_str(),
+                                             /* domain */ nullptr, hostNameCString, htons(aPort), txt.size(),
+                                             txt.data(), HandleServiceRegisterResult, this));
+    otbrLogInfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
     AddServiceRegistration(std::unique_ptr<DnssdServiceRegistration>(new DnssdServiceRegistration(
         aHostName, aName, aType, sortedSubTypeList, aPort, sortedTxtList, std::move(aCallback), serviceRef, this)));
+    otbrLogInfo("###################################");
 
 exit:
     if (error != kDNSServiceErr_NoError || ret != OTBR_ERROR_NONE)
@@ -1051,11 +1061,19 @@ void PublisherMDnsSd::ServiceInstanceResolution::HandleGetAddrInfoResult(DNSServ
             static_cast<unsigned int>(aAddress->sa_family), aErrorCode);
 
     VerifyOrExit(aErrorCode == kDNSServiceErr_NoError);
-    VerifyOrExit((aFlags & kDNSServiceFlagsAdd) && aAddress->sa_family == AF_INET6);
+    VerifyOrExit((aFlags & kDNSServiceFlagsAdd) && (aAddress->sa_family == AF_INET6 || aAddress->sa_family == AF_INET));
 
-    address.CopyFrom(*reinterpret_cast<const struct sockaddr_in6 *>(aAddress));
-    VerifyOrExit(!address.IsUnspecified() && !address.IsLinkLocal() && !address.IsMulticast() && !address.IsLoopback(),
-                 otbrLogDebug("DNSServiceGetAddrInfo ignores address %s", address.ToString().c_str()));
+    if (aAddress->sa_family == AF_INET6)
+    {
+        address.CopyFrom(*reinterpret_cast<const struct sockaddr_in6 *>(aAddress));
+        VerifyOrExit(!address.IsUnspecified() && !address.IsLinkLocal() && !address.IsMulticast() &&
+                         !address.IsLoopback(),
+                     otbrLogDebug("DNSServiceGetAddrInfo ignores address %s", address.ToString().c_str()));
+    }
+    else
+    {
+        address.CopyFrom((*reinterpret_cast<const struct sockaddr_in *>(aAddress)).sin_addr);
+    }
 
     mInstanceInfo.mAddresses.push_back(address);
     mInstanceInfo.mTtl = aTtl;

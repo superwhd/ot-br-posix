@@ -149,6 +149,7 @@ BorderAgent::BorderAgent(otbr::Ncp::ControllerOpenThread &aNcp)
 #if OTBR_ENABLE_TREL
     , mTrelDnssd(aNcp, *mPublisher)
 #endif
+    , mSrplDnssd(aNcp, *mPublisher)
 {
 }
 
