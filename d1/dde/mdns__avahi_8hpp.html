@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">openthread-br
-   &#160;<span id="projectnumber">0.3.0</span>
+   &#160;<span id="projectnumber">0.3.0-22bcc57</span>
    </div>
   </td>
  </tr>
@@ -72,12 +72,16 @@ $(function() {
 <div class="title">mdns_avahi.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;vector&gt;</code><br />
+<div class="textblock"><code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;set&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &lt;avahi-client/client.h&gt;</code><br />
+<code>#include &lt;avahi-client/lookup.h&gt;</code><br />
 <code>#include &lt;avahi-client/publish.h&gt;</code><br />
 <code>#include &lt;avahi-common/domain.h&gt;</code><br />
 <code>#include &lt;avahi-common/watch.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="../../de/d7c/mdns_8hpp_source.html">mdns.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/d7b/code__utils_8hpp_source.html">common/code_utils.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d0/dfd/mainloop_8hpp_source.html">common/mainloop.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/d99/time_8hpp_source.html">common/time.hpp</a>&quot;</code><br />
 </div>
@@ -85,17 +89,11 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d3f/structAvahiWatch.html">AvahiWatch</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dfa/structAvahiTimeout.html">AvahiTimeout</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d23/classotbr_1_1Mdns_1_1Poller.html">otbr::Mdns::Poller</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dc6/classotbr_1_1Mdns_1_1PublisherAvahi.html">otbr::Mdns::PublisherAvahi</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This file includes definition for MDNS service based on avahi. </p>
+<div class="textblock"><p>This file includes definition for mDNS publisher based on avahi. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

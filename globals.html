@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">openthread-br
-   &#160;<span id="projectnumber">0.3.0</span>
+   &#160;<span id="projectnumber">0.3.0-22bcc57</span>
    </div>
   </td>
  </tr>
@@ -172,6 +172,9 @@ $(function() {
 <li>OTBR_ALIGNED
 : <a class="el" href="da/d7b/code__utils_8hpp.html#a3c4a82c0020317f9f2ffcfebcb6a3712">code_utils.hpp</a>
 </li>
+<li>OTBR_ERROR_ABORTED
+: <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaaeaac43db82c25ba60b0b4ad03b9b73ef">types.hpp</a>
+</li>
 <li>OTBR_ERROR_DBUS
 : <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaa64d15646223a2ceea9bfde5574f4ea42">types.hpp</a>
 </li>
@@ -181,8 +184,14 @@ $(function() {
 <li>OTBR_ERROR_ERRNO
 : <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaaa40d3cebb126a37687ab4fbb2ec94785">types.hpp</a>
 </li>
+<li>OTBR_ERROR_INFRA_LINK_CHANGED
+: <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaa4afb9a76eb1e9823fd3eb36ef07f6c8b">types.hpp</a>
+</li>
 <li>OTBR_ERROR_INVALID_ARGS
 : <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaa0c78adc6972b7a7ad9904a998605cb9d">types.hpp</a>
+</li>
+<li>OTBR_ERROR_INVALID_STATE
+: <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaa961710c1977b23b53b9fd4fa00f6dbf8">types.hpp</a>
 </li>
 <li>OTBR_ERROR_MDNS
 : <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaa4d0b494d58398fb57e7b8fc875a8be77">types.hpp</a>
@@ -208,8 +217,32 @@ $(function() {
 <li>OTBR_ERROR_SMCROUTE
 : <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aaa85e2380516117c5003e635f66339092e">types.hpp</a>
 </li>
+<li>OTBR_LOG_ALERT
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10a48ea03f1797b2a650fc4b51261f6bb0a">logging.hpp</a>
+</li>
+<li>OTBR_LOG_CRIT
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10a3ccfa85865747558f386e578d47e1b48">logging.hpp</a>
+</li>
+<li>OTBR_LOG_DEBUG
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10a568cddbb5354a98d710bc71a2657631a">logging.hpp</a>
+</li>
+<li>OTBR_LOG_EMERG
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10a0e831287f3ae802f5c49a80bea7a4d80">logging.hpp</a>
+</li>
+<li>OTBR_LOG_ERR
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10ac26f5272ed998701b748bd03304bb839">logging.hpp</a>
+</li>
+<li>OTBR_LOG_INFO
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10aeb0321d42905748f2bb55dbd11827065">logging.hpp</a>
+</li>
+<li>OTBR_LOG_NOTICE
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10ab5dc11d468bf72ce7aff76fca436cc45">logging.hpp</a>
+</li>
+<li>OTBR_LOG_WARNING
+: <a class="el" href="d0/da9/logging_8hpp.html#ada87d1da6f6926eb3d881aae37340f10a83e0d72526c4ad89d262a4e2235ab05e">logging.hpp</a>
+</li>
 <li>otbrDump()
-: <a class="el" href="d0/da9/logging_8hpp.html#ad32a7bd42b17181465ed622f88b53aeb">logging.hpp</a>
+: <a class="el" href="d0/da9/logging_8hpp.html#ab4d8013f506ecb2f6d625eb40b3022ce">logging.hpp</a>
 </li>
 <li>otbrError
 : <a class="el" href="dc/d53/common_2types_8hpp.html#a9addd74a14dca1dab1b3e7a8205455aa">types.hpp</a>
@@ -259,8 +292,14 @@ $(function() {
 <li>otbrLogResult
 : <a class="el" href="d0/da9/logging_8hpp.html#a8de3dbe15c57a9fb48c735835b20d939">logging.hpp</a>
 </li>
+<li>otbrLogSetLevel()
+: <a class="el" href="d0/da9/logging_8hpp.html#aa4b0bf2713442aa78a8c2ecf5c5f8c5d">logging.hpp</a>
+</li>
 <li>otbrLogv()
-: <a class="el" href="d0/da9/logging_8hpp.html#a4f8039b108e2b4f1ab02eff7f66dcadc">logging.hpp</a>
+: <a class="el" href="d0/da9/logging_8hpp.html#aaf2c504d00faeea0f5e4a8e45ed7a871">logging.hpp</a>
+</li>
+<li>otbrLogvNoFilter()
+: <a class="el" href="d0/da9/logging_8hpp.html#a13b760a72ea9fe45589aa46998847373">logging.hpp</a>
 </li>
 <li>otbrLogWarning
 : <a class="el" href="d0/da9/logging_8hpp.html#ab49c142f1e0b2ff0f42f3d99c6826af7">logging.hpp</a>
@@ -270,19 +309,16 @@ $(function() {
 
 <h3><a id="index_s"></a>- s -</h3><ul>
 <li>SplitFullDnsName()
-: <a class="el" href="d9/d29/dns__utils_8hpp.html#aaaf75513be9970a7e1748fdbb4c8d78a">dns_utils.hpp</a>
+: <a class="el" href="d9/da9/common_2dns__utils_8hpp.html#aaaf75513be9970a7e1748fdbb4c8d78a">dns_utils.hpp</a>
 </li>
 <li>SplitFullHostName()
-: <a class="el" href="d9/d29/dns__utils_8hpp.html#ae4e1d920684b174d76ce1e2d54357a6e">dns_utils.hpp</a>
+: <a class="el" href="d9/da9/common_2dns__utils_8hpp.html#ae4e1d920684b174d76ce1e2d54357a6e">dns_utils.hpp</a>
 </li>
 <li>SplitFullServiceInstanceName()
-: <a class="el" href="d9/d29/dns__utils_8hpp.html#adf88ef7618d5246f10d62e57aa1064cd">dns_utils.hpp</a>
+: <a class="el" href="d9/da9/common_2dns__utils_8hpp.html#adf88ef7618d5246f10d62e57aa1064cd">dns_utils.hpp</a>
 </li>
 <li>SplitFullServiceName()
-: <a class="el" href="d9/d29/dns__utils_8hpp.html#a05a581ad1a6f4677cb958d2fc8f9081a">dns_utils.hpp</a>
-</li>
-<li>strcpy_safe()
-: <a class="el" href="d4/deb/strcpy__utils_8hpp.html#a50730d55221ad008064cfc4e78374c7e">strcpy_utils.hpp</a>
+: <a class="el" href="d9/da9/common_2dns__utils_8hpp.html#a05a581ad1a6f4677cb958d2fc8f9081a">dns_utils.hpp</a>
 </li>
 <li>SuccessOrDie
 : <a class="el" href="da/d7b/code__utils_8hpp.html#af38b11ab2e5093086804add4a45f274a">code_utils.hpp</a>

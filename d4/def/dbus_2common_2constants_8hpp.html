@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">openthread-br
-   &#160;<span id="projectnumber">0.3.0</span>
+   &#160;<span id="projectnumber">0.3.0-22bcc57</span>
    </div>
   </td>
  </tr>
@@ -104,6 +104,9 @@ Macros</h2></td></tr>
 <tr class="memitem:a9c3b82ca2e8f3683521c22e7a1567408"><td class="memItemLeft" align="right" valign="top"><a id="a9c3b82ca2e8f3683521c22e7a1567408"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_SCAN_METHOD</b>&#160;&#160;&#160;&quot;Scan&quot;</td></tr>
 <tr class="separator:a9c3b82ca2e8f3683521c22e7a1567408"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d284a843f7c465ad2b1b79f3b5e725a"><td class="memItemLeft" align="right" valign="top"><a id="a5d284a843f7c465ad2b1b79f3b5e725a"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_ENERGY_SCAN_METHOD</b>&#160;&#160;&#160;&quot;EnergyScan&quot;</td></tr>
+<tr class="separator:a5d284a843f7c465ad2b1b79f3b5e725a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae9303ed94c4229dbfce690fa9b675213"><td class="memItemLeft" align="right" valign="top"><a id="ae9303ed94c4229dbfce690fa9b675213"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_ATTACH_METHOD</b>&#160;&#160;&#160;&quot;Attach&quot;</td></tr>
 <tr class="separator:ae9303ed94c4229dbfce690fa9b675213"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -137,6 +140,18 @@ Macros</h2></td></tr>
 <tr class="memitem:aba331cf4c602b50f000dc5091c051bc5"><td class="memItemLeft" align="right" valign="top"><a id="aba331cf4c602b50f000dc5091c051bc5"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_REMOVE_EXTERNAL_ROUTE_METHOD</b>&#160;&#160;&#160;&quot;RemoveExternalRoute&quot;</td></tr>
 <tr class="separator:aba331cf4c602b50f000dc5091c051bc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8df8b1ca4aea52b25ab464479ccd14f6"><td class="memItemLeft" align="right" valign="top"><a id="a8df8b1ca4aea52b25ab464479ccd14f6"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_ATTACH_ALL_NODES_TO_METHOD</b>&#160;&#160;&#160;&quot;AttachAllNodesTo&quot;</td></tr>
+<tr class="separator:a8df8b1ca4aea52b25ab464479ccd14f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78fa0c18496252926315c6fea48e9bf9"><td class="memItemLeft" align="right" valign="top"><a id="a78fa0c18496252926315c6fea48e9bf9"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_UPDATE_VENDOR_MESHCOP_TXT_METHOD</b>&#160;&#160;&#160;&quot;UpdateVendorMeshCopTxtEntries&quot;</td></tr>
+<tr class="separator:a78fa0c18496252926315c6fea48e9bf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f6458865db9ca181dca20fe43b8cdaf"><td class="memItemLeft" align="right" valign="top"><a id="a5f6458865db9ca181dca20fe43b8cdaf"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_GET_PROPERTIES_METHOD</b>&#160;&#160;&#160;&quot;GetProperties&quot;</td></tr>
+<tr class="separator:a5f6458865db9ca181dca20fe43b8cdaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0df74e334b6b4aec99358067f9502b5"><td class="memItemLeft" align="right" valign="top"><a id="ae0df74e334b6b4aec99358067f9502b5"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_LEAVE_NETWORK_METHOD</b>&#160;&#160;&#160;&quot;LeaveNetwork&quot;</td></tr>
+<tr class="separator:ae0df74e334b6b4aec99358067f9502b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad74c3e62e11019c0d10a9d7885ab3c37"><td class="memItemLeft" align="right" valign="top"><a id="ad74c3e62e11019c0d10a9d7885ab3c37"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_MESH_LOCAL_PREFIX</b>&#160;&#160;&#160;&quot;MeshLocalPrefix&quot;</td></tr>
 <tr class="separator:ad74c3e62e11019c0d10a9d7885ab3c37"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -161,9 +176,9 @@ Macros</h2></td></tr>
 <tr class="memitem:af41f7894c7bc95369ce98acb679578ea"><td class="memItemLeft" align="right" valign="top"><a id="af41f7894c7bc95369ce98acb679578ea"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_CHANNEL</b>&#160;&#160;&#160;&quot;Channel&quot;</td></tr>
 <tr class="separator:af41f7894c7bc95369ce98acb679578ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ade0de8d7051aeb956874ae229dad4346"><td class="memItemLeft" align="right" valign="top"><a id="ade0de8d7051aeb956874ae229dad4346"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_MASTER_KEY</b>&#160;&#160;&#160;&quot;MasterKey&quot;</td></tr>
-<tr class="separator:ade0de8d7051aeb956874ae229dad4346"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4da331491cf1a1ad2fa564c0a0d7d7ad"><td class="memItemLeft" align="right" valign="top"><a id="a4da331491cf1a1ad2fa564c0a0d7d7ad"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_NETWORK_KEY</b>&#160;&#160;&#160;&quot;NetworkKey&quot;</td></tr>
+<tr class="separator:a4da331491cf1a1ad2fa564c0a0d7d7ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a977413e981dde855c9136b4e3960037c"><td class="memItemLeft" align="right" valign="top"><a id="a977413e981dde855c9136b4e3960037c"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_CCA_FAILURE_RATE</b>&#160;&#160;&#160;&quot;CcaFailureRate&quot;</td></tr>
 <tr class="separator:a977413e981dde855c9136b4e3960037c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -221,12 +236,51 @@ Macros</h2></td></tr>
 <tr class="memitem:a3c521c929405579cfe9cb093c7271672"><td class="memItemLeft" align="right" valign="top"><a id="a3c521c929405579cfe9cb093c7271672"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_EXTERNAL_ROUTES</b>&#160;&#160;&#160;&quot;ExternalRoutes&quot;</td></tr>
 <tr class="separator:a3c521c929405579cfe9cb093c7271672"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09e1db78a7645f9469d05d66c1e8b66b"><td class="memItemLeft" align="right" valign="top"><a id="a09e1db78a7645f9469d05d66c1e8b66b"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_ON_MESH_PREFIXES</b>&#160;&#160;&#160;&quot;OnMeshPrefixes&quot;</td></tr>
+<tr class="separator:a09e1db78a7645f9469d05d66c1e8b66b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2e5fe4dd6508b741b5a41c93544858f"><td class="memItemLeft" align="right" valign="top"><a id="ae2e5fe4dd6508b741b5a41c93544858f"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_ACTIVE_DATASET_TLVS</b>&#160;&#160;&#160;&quot;ActiveDatasetTlvs&quot;</td></tr>
 <tr class="separator:ae2e5fe4dd6508b741b5a41c93544858f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b1d7defb359088d8eb8d5c97ac3d45e"><td class="memItemLeft" align="right" valign="top"><a id="a9b1d7defb359088d8eb8d5c97ac3d45e"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_FEATURE_FLAG_LIST_DATA</b>&#160;&#160;&#160;&quot;FeatureFlagListData&quot;</td></tr>
+<tr class="separator:a9b1d7defb359088d8eb8d5c97ac3d45e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb59cd97072dd38914539d991312d24b"><td class="memItemLeft" align="right" valign="top"><a id="acb59cd97072dd38914539d991312d24b"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_RADIO_REGION</b>&#160;&#160;&#160;&quot;RadioRegion&quot;</td></tr>
 <tr class="separator:acb59cd97072dd38914539d991312d24b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a782f40c1efb3ab50b756bb7a73ccd4d2"><td class="memItemLeft" align="right" valign="top"><a id="a782f40c1efb3ab50b756bb7a73ccd4d2"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_SRP_SERVER_INFO</b>&#160;&#160;&#160;&quot;SrpServerInfo&quot;</td></tr>
+<tr class="separator:a782f40c1efb3ab50b756bb7a73ccd4d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afee0284eb0afd6f3d7fa1107ce6dd1f3"><td class="memItemLeft" align="right" valign="top"><a id="afee0284eb0afd6f3d7fa1107ce6dd1f3"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_DNSSD_COUNTERS</b>&#160;&#160;&#160;&quot;DnssdCounters&quot;</td></tr>
+<tr class="separator:afee0284eb0afd6f3d7fa1107ce6dd1f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7e2fdf235925df4bdeac7fb0c3cc235"><td class="memItemLeft" align="right" valign="top"><a id="ad7e2fdf235925df4bdeac7fb0c3cc235"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_OT_HOST_VERSION</b>&#160;&#160;&#160;&quot;OtHostVersion&quot;</td></tr>
+<tr class="separator:ad7e2fdf235925df4bdeac7fb0c3cc235"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a657b4ed1eb70603969146e0061071455"><td class="memItemLeft" align="right" valign="top"><a id="a657b4ed1eb70603969146e0061071455"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_OT_RCP_VERSION</b>&#160;&#160;&#160;&quot;OtRcpVersion&quot;</td></tr>
+<tr class="separator:a657b4ed1eb70603969146e0061071455"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cd8fa5df2fac22ffd59bb689723a148"><td class="memItemLeft" align="right" valign="top"><a id="a1cd8fa5df2fac22ffd59bb689723a148"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_THREAD_VERSION</b>&#160;&#160;&#160;&quot;ThreadVersion&quot;</td></tr>
+<tr class="separator:a1cd8fa5df2fac22ffd59bb689723a148"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad39e5ca80cfcc0a8598f19b38e6cf3a2"><td class="memItemLeft" align="right" valign="top"><a id="ad39e5ca80cfcc0a8598f19b38e6cf3a2"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_EUI64</b>&#160;&#160;&#160;&quot;Eui64&quot;</td></tr>
+<tr class="separator:ad39e5ca80cfcc0a8598f19b38e6cf3a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b0935fa29229921528d125bbead52ac"><td class="memItemLeft" align="right" valign="top"><a id="a6b0935fa29229921528d125bbead52ac"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_MDNS_TELEMETRY_INFO</b>&#160;&#160;&#160;&quot;MdnsTelemetryInfo&quot;</td></tr>
+<tr class="separator:a6b0935fa29229921528d125bbead52ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a571ce650b80b2cfcd2d89afbcad1bb4e"><td class="memItemLeft" align="right" valign="top"><a id="a571ce650b80b2cfcd2d89afbcad1bb4e"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_RADIO_SPINEL_METRICS</b>&#160;&#160;&#160;&quot;RadioSpinelMetrics&quot;</td></tr>
+<tr class="separator:a571ce650b80b2cfcd2d89afbcad1bb4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afec5e9faa184870b0cd31182e0d945e5"><td class="memItemLeft" align="right" valign="top"><a id="afec5e9faa184870b0cd31182e0d945e5"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_RCP_INTERFACE_METRICS</b>&#160;&#160;&#160;&quot;RcpInterfaceMetrics&quot;</td></tr>
+<tr class="separator:afec5e9faa184870b0cd31182e0d945e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6cabc1f58ea116b672437ca304f9ba5"><td class="memItemLeft" align="right" valign="top"><a id="ab6cabc1f58ea116b672437ca304f9ba5"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_UPTIME</b>&#160;&#160;&#160;&quot;Uptime&quot;</td></tr>
+<tr class="separator:ab6cabc1f58ea116b672437ca304f9ba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92fa680a79792f61fa817f24a6e57e63"><td class="memItemLeft" align="right" valign="top"><a id="a92fa680a79792f61fa817f24a6e57e63"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_PROPERTY_RADIO_COEX_METRICS</b>&#160;&#160;&#160;&quot;RadioCoexMetrics&quot;</td></tr>
+<tr class="separator:a92fa680a79792f61fa817f24a6e57e63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ea42a68734fa7e43d169f6a5320810f"><td class="memItemLeft" align="right" valign="top"><a id="a5ea42a68734fa7e43d169f6a5320810f"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_ROLE_NAME_DISABLED</b>&#160;&#160;&#160;&quot;disabled&quot;</td></tr>
 <tr class="separator:a5ea42a68734fa7e43d169f6a5320810f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -242,6 +296,9 @@ Macros</h2></td></tr>
 <tr class="memitem:afdfbb74c51eaed025abf1b8908c77164"><td class="memItemLeft" align="right" valign="top"><a id="afdfbb74c51eaed025abf1b8908c77164"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_ROLE_NAME_LEADER</b>&#160;&#160;&#160;&quot;leader&quot;</td></tr>
 <tr class="separator:afdfbb74c51eaed025abf1b8908c77164"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a455464ddc9133d610dcc5ea9df556d32"><td class="memItemLeft" align="right" valign="top"><a id="a455464ddc9133d610dcc5ea9df556d32"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OTBR_DBUS_SIGNAL_READY</b>&#160;&#160;&#160;&quot;Ready&quot;</td></tr>
+<tr class="separator:a455464ddc9133d610dcc5ea9df556d32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This file includes definitions for d-bus server constants. </p>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">openthread-br
-   &#160;<span id="projectnumber">0.3.0</span>
+   &#160;<span id="projectnumber">0.3.0-22bcc57</span>
    </div>
   </td>
  </tr>
@@ -86,6 +86,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a874758a90cc13e74005caab2f25f016a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1b52e77c6c062588da9bdd198d25b34"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d3f/classotbr_1_1Web_1_1OpenThreadClient.html#aa1b52e77c6c062588da9bdd198d25b34">Execute</a> (const char *aFormat,...)</td></tr>
 <tr class="separator:aa1b52e77c6c062588da9bdd198d25b34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae94d437e6107bc18688865a865f2006f"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d3f/classotbr_1_1Web_1_1OpenThreadClient.html#ae94d437e6107bc18688865a865f2006f">Read</a> (const char *aResponse, int aTimeout)</td></tr>
+<tr class="separator:ae94d437e6107bc18688865a865f2006f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4683127e8efe4022b91eb1590304ef36"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d3f/classotbr_1_1Web_1_1OpenThreadClient.html#a4683127e8efe4022b91eb1590304ef36">Scan</a> (<a class="el" href="../../d9/dc3/structotbr_1_1Web_1_1WpanNetworkInfo.html">WpanNetworkInfo</a> *aNetworks, int aLength)</td></tr>
 <tr class="separator:a4683127e8efe4022b91eb1590304ef36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1eff6b891617591bfaaac5cbb5ae2c35"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d3f/classotbr_1_1Web_1_1OpenThreadClient.html#a1eff6b891617591bfaaac5cbb5ae2c35">FactoryReset</a> (void)</td></tr>
@@ -157,8 +159,8 @@ Public Member Functions</h2></td></tr>
 <p>This method connects to OpenThread daemon.</p>
 <dl class="retval"><dt>Return values</dt><dd>
   <table class="retval">
-    <tr><td class="paramname">true</td><td>Successfully connected to the daemon. </td></tr>
-    <tr><td class="paramname">false</td><td>Failed to connected to the daemon. </td></tr>
+    <tr><td class="paramname">TRUE</td><td>Successfully connected to the daemon. </td></tr>
+    <tr><td class="paramname">FALSE</td><td>Failed to connected to the daemon. </td></tr>
   </table>
   </dd>
 </dl>
@@ -218,6 +220,43 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>This method performs factory reset. </p>
+
+</div>
+</div>
+<a id="ae94d437e6107bc18688865a865f2006f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae94d437e6107bc18688865a865f2006f">&#9670;&nbsp;</a></span>Read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * otbr::Web::OpenThreadClient::Read </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>aResponse</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>aTimeout</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>This method reads from OpenThread CLI.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">aResponse</td><td>The expected read response. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">aTimeout</td><td>Timeout for the read, in ms.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pointer to the output if the expected response is found, otherwise nullptr. </dd></dl>
 
 </div>
 </div>
