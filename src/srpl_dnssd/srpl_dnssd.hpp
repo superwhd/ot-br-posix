@@ -68,6 +68,8 @@ private:
 
     using DiscoveredInstanceInfo = otbr::Mdns::Publisher::DiscoveredInstanceInfo;
 
+    bool IsBrowsing() const { return mSubscriberId != 0; }
+
     void OnServiceInstanceResolved(const std::string &aType, const DiscoveredInstanceInfo &aInstanceInfo);
 
     Ncp::ControllerOpenThread &mNcp;

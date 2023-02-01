@@ -82,7 +82,7 @@ SrplDnssd::SrplDnssd(Ncp::ControllerOpenThread &aNcp, Mdns::Publisher &aPublishe
 
 void SrplDnssd::StartBrowse(void)
 {
-    VerifyOrExit(!mSubscriberId);
+    VerifyOrExit(!IsBrowsing());
 
     mSubscriberId = mPublisher.AddSubscriptionCallbacks(
         [this](const std::string &aType, const DiscoveredInstanceInfo &aInstanceInfo) {
@@ -97,7 +97,7 @@ exit:
 
 void SrplDnssd::StopBrowse(void)
 {
-    VerifyOrExit(mSubscriberId);
+    VerifyOrExit(IsBrowsing());
 
     mPublisher.UnsubscribeService(kServiceType, "");
     mPublisher.RemoveSubscriptionCallbacks(mSubscriberId);
@@ -141,7 +141,7 @@ void SrplDnssd::OnServiceInstanceResolved(const std::string &aType, const Discov
 
     otbrLogInfo("# of discovered addresses: %d", aInstanceInfo.mAddresses.size());
 
-    VerifyOrExit(mSubscriberId);
+    VerifyOrExit(IsBrowsing());
     VerifyOrExit(StringUtils::EqualCaseInsensitive(aType, kServiceType));
     VerifyOrExit(!StringUtils::EqualCaseInsensitive(aInstanceInfo.mName, mServiceInstanceName));
     // Also need to check by addresses to mark as 'me'.

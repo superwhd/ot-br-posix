@@ -462,9 +462,9 @@ void PublisherMDnsSd::HandleServiceRegisterResult(DNSServiceRef         aService
 {
     OTBR_UNUSED_VARIABLE(aDomain);
 
-    otbrError            error = DNSErrorToOtbrError(aError);
+    otbrError            error      = DNSErrorToOtbrError(aError);
     ServiceRegistration *serviceReg = FindServiceRegistration(aServiceRef);
-    serviceReg->mName   = aName;
+    serviceReg->mName               = aName;
 
     otbrLogInfo("Received reply for service %s.%s, serviceRef = %p", aName, aType, aServiceRef);
 
@@ -523,8 +523,8 @@ otbrError PublisherMDnsSd::PublishServiceImpl(const std::string &aHostName,
     SuccessOrExit(ret = EncodeTxtData(aTxtList, txt));
     otbrLogInfo("Registering new service %s.%s.local, serviceRef = %p", aName.c_str(), regType.c_str(), serviceRef);
     otbrLogInfo("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    SuccessOrExit(error = DNSServiceRegister(&serviceRef, kDNSServiceFlagsNoAutoRename,
-                                             kDNSServiceInterfaceIndexAny, serviceNameCString, regType.c_str(),
+    SuccessOrExit(error = DNSServiceRegister(&serviceRef, kDNSServiceFlagsNoAutoRename, kDNSServiceInterfaceIndexAny,
+                                             serviceNameCString, regType.c_str(),
                                              /* domain */ nullptr, hostNameCString, htons(aPort), txt.size(),
                                              txt.data(), HandleServiceRegisterResult, this));
     otbrLogInfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -1061,19 +1061,11 @@ void PublisherMDnsSd::ServiceInstanceResolution::HandleGetAddrInfoResult(DNSServ
             static_cast<unsigned int>(aAddress->sa_family), aErrorCode);
 
     VerifyOrExit(aErrorCode == kDNSServiceErr_NoError);
-    VerifyOrExit((aFlags & kDNSServiceFlagsAdd) && (aAddress->sa_family == AF_INET6 || aAddress->sa_family == AF_INET));
+    VerifyOrExit((aFlags & kDNSServiceFlagsAdd) && aAddress->sa_family == AF_INET6);
 
-    if (aAddress->sa_family == AF_INET6)
-    {
-        address.CopyFrom(*reinterpret_cast<const struct sockaddr_in6 *>(aAddress));
-        VerifyOrExit(!address.IsUnspecified() && !address.IsLinkLocal() && !address.IsMulticast() &&
-                         !address.IsLoopback(),
-                     otbrLogDebug("DNSServiceGetAddrInfo ignores address %s", address.ToString().c_str()));
-    }
-    else
-    {
-        address.CopyFrom((*reinterpret_cast<const struct sockaddr_in *>(aAddress)).sin_addr);
-    }
+    address.CopyFrom(*reinterpret_cast<const struct sockaddr_in6 *>(aAddress));
+    VerifyOrExit(!address.IsUnspecified() && !address.IsLinkLocal() && !address.IsMulticast() && !address.IsLoopback(),
+                 otbrLogDebug("DNSServiceGetAddrInfo ignores address %s", address.ToString().c_str()));
 
     mInstanceInfo.mAddresses.push_back(address);
     mInstanceInfo.mTtl = aTtl;
