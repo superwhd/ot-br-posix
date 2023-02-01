@@ -87,14 +87,15 @@ public:
         auto    _     = CDLogger("Connect");
         otError error = OT_ERROR_NONE;
         int     ret;
-        mPeerSockAddr = *aPeerSockAddr;
         char buf[OT_IP6_ADDRESS_STRING_SIZE];
-        char portBuf[6];
-        otIp6AddressToString(&aPeerSockAddr->mAddress, buf, sizeof(buf));
-        snprintf(portBuf, sizeof(portBuf), "%u", aPeerSockAddr->mPort);
-        otbrLogInfo("###### connecting to : %s %s", buf, portBuf);
 
-        if ((ret = mbedtls_net_connect(&mCtx, buf, portBuf, MBEDTLS_NET_PROTO_TCP)) != 0)
+        mPeerSockAddr = *aPeerSockAddr;
+        std::string portString = std::to_string(aPeerSockAddr->mPort);
+
+        otIp6AddressToString(&aPeerSockAddr->mAddress, buf, sizeof(buf));
+        otbrLogInfo("###### connecting to : %s %s", buf, portString.c_str());
+
+        if ((ret = mbedtls_net_connect(&mCtx, buf, portString.c_str(), MBEDTLS_NET_PROTO_TCP)) != 0)
         {
             otbrLogInfo("address: %s, port: %u", buf, aPeerSockAddr->mPort);
             otbrLogInfo("mbedtls net connect failed: %s", MbedErrorToString(ret));
@@ -102,14 +103,13 @@ public:
             ExitNow();
         }
 
-        mPeerSockAddr = *aPeerSockAddr;
         VerifyOrExit((ret = mbedtls_net_set_nonblock(&mCtx)) == 0, error = OT_ERROR_FAILED);
         otbrLogInfo("###### mbedtls net connect succeeded: %s", MbedErrorToString(ret));
         otPlatDsoHandleConnected(mConnection);
         mConnected = true;
 
     exit:
-        if (error != OT_ERROR_FAILED)
+        if (error != OT_ERROR_NONE)
         {
             otbrLogInfo("???? mbedtls net connect failed: %s", MbedErrorToString(ret));
         }
@@ -192,7 +192,7 @@ public:
             int32_t readLen = std::min(static_cast<int32_t>(mWantMessageSize) - otMessageGetLength(mPendingMessage),
                                        static_cast<int32_t>(mBufferEnd) - mBufferBegin);
             VerifyOrDie(readLen >= 0, 1);
-            VerifyOrDie(otMessageAppend(mPendingMessage, mBuffer + mBufferBegin, readLen) == OT_ERROR_FAILED, 1);
+            VerifyOrDie(otMessageAppend(mPendingMessage, mBuffer + mBufferBegin, readLen) == OT_ERROR_NONE, 1);
             mBufferBegin += readLen;
             if (otMessageGetLength(mPendingMessage) == mWantMessageSize)
             {

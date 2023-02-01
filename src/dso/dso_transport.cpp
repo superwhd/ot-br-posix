@@ -139,8 +139,7 @@ void AcceptIncomingConnections(otInstance *aInstance)
         in_addr             *addrIn;
         otPlatDsoConnection *conn;
 
-        int ret = mbedtls_net_accept(&sListeningCtx, &incomingCtx, &incomingAddrBuf, sizeof(incomingAddrBuf), &len);
-        if (ret < 0)
+        int ret = mbedtls_net_accept(&sListeningCtx, &incomingCtx, &incomingAddrBuf, sizeof(incomingAddrBuf), &len); if (ret < 0)
         {
             if (ret == MBEDTLS_ERR_SSL_WANT_READ)
             {
