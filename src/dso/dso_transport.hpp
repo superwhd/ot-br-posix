@@ -6,12 +6,7 @@
 #include <vector>
 
 #include <cassert>
-//#include "common/code_utils.hpp"
-//#include "common/encoding.hpp"
-//#include "common/error.hpp"
-//#include "common/logging.hpp"
-//#include "common/non_copyable.hpp"
-//#include "lib/platform/exit_code.h"
+
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/entropy.h"
@@ -19,7 +14,6 @@
 #include "mbedtls/net.h"
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
-//#include "net/dns_dso.hpp"
 #include "common/code_utils.hpp"
 #include "openthread/logging.h"
 #include "openthread/message.h"
@@ -31,15 +25,6 @@
 namespace otbr {
 namespace dso {
 
-enum class MessageType
-{
-    DSO_MSG_CMD_CONNECT,
-    DSO_MSG_CMD_ACCEPT,
-    DSO_MSG_CMD_CLOSE,
-    DSO_MSG_CMD_ABORT,
-    DSO_MSG_DATA,
-};
-
 // TODO: queue tx packets
 const char *MbedErrorToString(int aError)
 {
@@ -47,31 +32,6 @@ const char *MbedErrorToString(int aError)
     mbedtls_strerror(aError, errBuf, sizeof(errBuf));
     return errBuf;
 }
-
-struct CDLogger
-{
-    CDLogger(const char *aContent)
-    {
-        if (!mEnabled)
-        {
-            return;
-        }
-        strcpy(mContent, aContent);
-        printf("[BEGIN]: %s\n", mContent);
-    }
-    ~CDLogger()
-    {
-        if (!mEnabled)
-        {
-            return;
-        }
-        printf("[END]: %s\n", mContent);
-    }
-
-    bool mEnabled = false;
-
-    char mContent[260];
-};
 
 class DsoConnection : NonCopyable
 {
@@ -84,7 +44,6 @@ public:
 
     otError Connect(const otSockAddr *aPeerSockAddr)
     {
-        auto    _     = CDLogger("Connect");
         otError error = OT_ERROR_NONE;
         int     ret;
         char buf[OT_IP6_ADDRESS_STRING_SIZE];
@@ -118,7 +77,6 @@ public:
 
     void Send(otMessage *aMessage)
     {
-        auto    _ = CDLogger("Send");
         uint8_t buf[1600];
         auto    len = otMessageRead(aMessage, 0, buf + 2, sizeof(buf) - 2);
         //        otDumpInfoPlat("going to send DSO payload", buf, len);
@@ -142,7 +100,6 @@ public:
 
     void HandleReceive()
     {
-        auto _ = CDLogger("HandleReceive");
         int  ret;
 
         VerifyOrExit(mConnected);
@@ -213,7 +170,6 @@ public:
 
     void Disconnect(otPlatDsoDisconnectMode aMode)
     {
-        auto _ = CDLogger("Disconnect");
         OT_UNUSED_VARIABLE(aMode);
         switch (aMode)
         {

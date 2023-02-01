@@ -1,13 +1,9 @@
 #include "openthread/platform/dso_transport.h"
 #include "dso_transport.hpp"
-//#include "system.hpp"
 #include <list>
 #include <memory>
-//#include "common/string.hpp"
 #include "mbedtls/net_sockets.h"
 #include "openthread/openthread-system.h"
-//#include "net/dns_dso.hpp"
-//#include "posix/platform/platform-posix.h"
 
 std::map<otPlatDsoConnection *, otbr::dso::DsoConnection *> otbr::dso::DsoConnection::sMap;
 
@@ -125,39 +121,27 @@ namespace dso {
 
 void AcceptIncomingConnections(otInstance *aInstance)
 {
-    auto _ = CDLogger("Accept incoming connections");
     VerifyOrExit(sListeningEnabled);
 
     while (true)
     {
-        otbrLogInfo("$$$$$$$$$$$$$$$$$$$ waiting for incoming connections ");
         mbedtls_net_context  incomingCtx;
         uint8_t              incomingAddrBuf[sizeof(sockaddr_in6)];
         size_t               len = 0;
         otSockAddr           addr;
         in6_addr            *addrIn6;
-        in_addr             *addrIn;
         otPlatDsoConnection *conn;
 
-        int ret = mbedtls_net_accept(&sListeningCtx, &incomingCtx, &incomingAddrBuf, sizeof(incomingAddrBuf), &len); if (ret < 0)
-        {
-            if (ret == MBEDTLS_ERR_SSL_WANT_READ)
-            {
-                ExitNow();
-            }
-            else
-            {
-                otbrLogInfo("!!!!! error accepting connection: %s", otbr::dso::MbedErrorToString(ret));
-            }
-        }
-        otbrLogInfo("!!!!! address size===== %ld", len);
-        if (len != OT_IP6_ADDRESS_SIZE && len != 4)
-        {
-            otbrLogInfo("!!!!! unexpected address size: %ld", len);
-            ExitNow();
-        }
+        int ret = mbedtls_net_accept(&sListeningCtx, &incomingCtx, &incomingAddrBuf, sizeof(incomingAddrBuf), &len);
 
-        SuccessOrDie(mbedtls_net_set_nonblock(&incomingCtx), "Die");
+        VerifyOrExit(ret == 0, otbrLogInfo("!!!!! error accepting connection: %s", otbr::dso::MbedErrorToString(ret)));
+
+        otbrLogInfo("!!!!! address size===== %ld", len);
+
+        if (mbedtls_net_set_nonblock(&incomingCtx))
+        {
+            continue;
+        }
 
         if (len == OT_IP6_ADDRESS_SIZE)
         { // TODO: the way of handling addr may be wrong
@@ -165,30 +149,17 @@ void AcceptIncomingConnections(otInstance *aInstance)
             memcpy(&addr.mAddress.mFields.m8, &addrIn6, len);
             addr.mPort = 0; // TODO
         }
-        else if (len == 4)
-        {
-            addrIn = reinterpret_cast<in_addr *>(incomingAddrBuf);
-            memset(&addr.mAddress, 0, sizeof(addr.mAddress));
-            memcpy(addr.mAddress.mFields.m32 + 3, &addrIn, len);
-            addr.mAddress.mFields.m16[5] = 0xff;
-            addr.mAddress.mFields.m16[6] = 0xff;
-            addr.mPort                   = 0; // TODO
-            otbrLogInfo("!!!!! IPV4 incoming connection: %p", addrIn);
-        }
         else
         {
             otbrLogInfo("!!!!! unknown address type !!!! ");
-            ExitNow();
+            continue;
         }
         conn = otPlatDsoAccept(aInstance, &addr);
 
-        //        otbrLogInfo("!!!!! accepting connection: %16x", incomingAddrBuf);
-
         if (conn != nullptr)
         {
-            otPlatDsoHandleConnected(conn);
             otbr::dso::DsoConnection::Create(conn, incomingCtx)->mConnected = true;
-            otbrLogInfo("handle connected !!!!");
+            otPlatDsoHandleConnected(conn);
         }
         else
         {
@@ -205,8 +176,6 @@ exit:
 
 extern "C" void platformDsoProcess(otInstance *aInstance)
 {
-    auto _ = otbr::dso::CDLogger("platform Dso Process");
-
     otbr::dso::DsoConnection::ProcessAll();
     otbr::dso::AcceptIncomingConnections(aInstance);
 }
