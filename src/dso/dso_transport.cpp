@@ -26,15 +26,18 @@
  *    POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "openthread/platform/dso_transport.h"
+#define OTBR_LOG_TAG "DSO"
+
 #include "dso_transport.hpp"
+
 #include <memory>
+
 #include "mbedtls/net_sockets.h"
 #include "openthread/openthread-system.h"
+#include "openthread/platform/dso_transport.h"
 
 static otbr::dso::DsoAgent *sDsoAgent = nullptr;
 
-// TODO ensure the socket is closed when disabled
 extern "C" void otPlatDsoEnableListening(otInstance *aInstance, bool aEnabled)
 {
     sDsoAgent->SetEnabled(aInstance, aEnabled);
@@ -42,19 +45,14 @@ extern "C" void otPlatDsoEnableListening(otInstance *aInstance, bool aEnabled)
 
 extern "C" void otPlatDsoConnect(otPlatDsoConnection *aConnection, const otSockAddr *aPeerSockAddr)
 {
-    auto conn = sDsoAgent->FindOrCreate(aConnection);
-    conn->Connect(aPeerSockAddr);
+    sDsoAgent->FindOrCreate(aConnection)->Connect(aPeerSockAddr);
 }
 
 extern "C" void otPlatDsoSend(otPlatDsoConnection *aConnection, otMessage *aMessage)
 {
-    OT_UNUSED_VARIABLE(aConnection);
-    OT_UNUSED_VARIABLE(aMessage);
-
     auto conn = sDsoAgent->Find(aConnection);
-    otbrLogInfo("finding conn");
+
     VerifyOrExit(conn != nullptr);
-    otbrLogInfo("found conn");
     conn->Send(aMessage);
 
 exit:
@@ -63,8 +61,6 @@ exit:
 
 extern "C" void otPlatDsoDisconnect(otPlatDsoConnection *aConnection, otPlatDsoDisconnectMode aMode)
 {
-    OT_UNUSED_VARIABLE(aConnection);
-    OT_UNUSED_VARIABLE(aMode);
     auto conn = sDsoAgent->Find(aConnection);
 
     VerifyOrExit(conn != nullptr);
@@ -78,22 +74,16 @@ exit:
 
 extern "C" void platformDsoProcess(otInstance *aInstance)
 {
-    //    otbr::dso::DsoConnection::ProcessAll();
-    sDsoAgent->ProcessOutgoingConnections();
-    sDsoAgent->ProcessIncomingConnections(aInstance);
+    sDsoAgent->ProcessConnections();
+    sDsoAgent->HandleIncomingConnections(aInstance);
 }
 
 namespace otbr {
 namespace dso {
-const char *MbedErrorToString(int aError)
-{
-    static char errBuf[500];
-    mbedtls_strerror(aError, errBuf, sizeof(errBuf));
-    return errBuf;
-}
 
 DsoAgent::DsoAgent(void)
 {
+    mbedtls_net_init(&mListeningCtx);
     sDsoAgent = this;
 }
 
@@ -110,17 +100,31 @@ DsoAgent::DsoConnection *DsoAgent::Find(otPlatDsoConnection *aConnection)
     return ret;
 }
 
-DsoAgent::DsoConnection *DsoAgent::FindOrCreate(otPlatDsoConnection *aConnection, mbedtls_net_context aCtx)
+DsoAgent::DsoConnection *DsoAgent::FindOrCreate(otPlatDsoConnection *aConnection)
 {
     auto &ret = mMap[aConnection];
+
     if (!ret)
     {
-        ret = std::unique_ptr<DsoConnection>(new DsoConnection(aConnection, aCtx));
+        ret = MakeUnique<DsoConnection>(aConnection);
     }
+
     return ret.get();
 }
 
-void DsoAgent::ProcessOutgoingConnections()
+DsoAgent::DsoConnection *DsoAgent::FindOrCreate(otPlatDsoConnection *aConnection, mbedtls_net_context aCtx)
+{
+    auto &ret = mMap[aConnection];
+
+    if (!ret)
+    {
+        ret = MakeUnique<DsoConnection>(aConnection, aCtx);
+    }
+
+    return ret.get();
+}
+
+void DsoAgent::ProcessConnections(void)
 {
     std::vector<DsoConnection *> connections;
     connections.reserve(mMap.size());
@@ -135,63 +139,27 @@ void DsoAgent::ProcessOutgoingConnections()
     }
 }
 
-void DsoAgent::ProcessIncomingConnections(otInstance *aInstance)
+void DsoAgent::HandleIncomingConnections(otInstance *aInstance)
 {
+    mbedtls_net_context incomingCtx;
+    uint8_t             address[sizeof(sockaddr_in6)];
+    size_t              len;
+    int                 ret = 0;
+
     VerifyOrExit(mListeningEnabled);
 
-    while (true)
+    while (!(ret = mbedtls_net_accept(&mListeningCtx, &incomingCtx, &address, sizeof(address), &len)))
     {
-        mbedtls_net_context  incomingCtx;
-        uint8_t              incomingAddrBuf[sizeof(sockaddr_in6)];
-        size_t               len = 0;
-        otSockAddr           addr;
-        in6_addr            *addrIn6;
-        otPlatDsoConnection *conn;
-
-        int ret = mbedtls_net_accept(&mListeningCtx, &incomingCtx, &incomingAddrBuf, sizeof(incomingAddrBuf), &len);
-
-        VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
-        VerifyOrExit(ret == 0, otbrLogInfo("!!!!! error accepting connection: %s", otbr::dso::MbedErrorToString(ret)));
-
-        otbrLogInfo("!!!!! address size===== %ld", len);
-
-        if (mbedtls_net_set_nonblock(&incomingCtx))
-        {
-            continue;
-        }
-
-        if (len == OT_IP6_ADDRESS_SIZE)
-        { // TODO: the way of handling addr may be wrong
-            Ip6Address address;
-
-            addrIn6 = reinterpret_cast<in6_addr *>(incomingAddrBuf);
-            memcpy(&addr.mAddress.mFields.m8, addrIn6, len);
-            address.CopyFrom(*addrIn6);
-
-            otbrLogInfo("!!!!! address ===== %s", address.ToString().c_str());
-            addr.mPort = 0; // TODO
-        }
-        else
-        {
-            otbrLogInfo("!!!!! unknown address type !!!! ");
-            continue;
-        }
-        conn = otPlatDsoAccept(aInstance, &addr);
-
-        if (conn != nullptr)
-        {
-            mMap[conn]             = MakeUnique<DsoConnection>(conn, incomingCtx);
-            mMap[conn]->mConnected = true;
-            otPlatDsoHandleConnected(conn);
-        }
-        else
-        {
-            char buf[50];
-            otIp6AddressToString(reinterpret_cast<otIp6Address *>(&addr.mAddress), buf, sizeof(buf));
-            otbrLogInfo("!!!! failed to accept connection: %s %d", buf, addr.mPort);
-        }
+        HandleIncomingConnection(aInstance, incomingCtx, address, len);
     }
+
+    if (ret != MBEDTLS_ERR_SSL_WANT_READ)
+    {
+        otbrLogWarning("Failed to accept incoming connection: %d", ret);
+    }
+
 exit:
+
     return;
 }
 
@@ -199,48 +167,28 @@ void DsoAgent::Enable(otInstance *aInstance)
 {
     OTBR_UNUSED_VARIABLE(aInstance);
 
+    constexpr int kOne = 1;
+    sockaddr_in6  sockAddr;
+
     VerifyOrExit(!mListeningEnabled);
 
     mListeningCtx.fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-    otbrLogInfo("!!!!!!!! ifrname %s", otSysGetInfraNetifName());
-    int ret;
-    if ((ret = setsockopt(mListeningCtx.fd, SOL_SOCKET, SO_BINDTODEVICE, otSysGetInfraNetifName(),
-                          strlen(otSysGetInfraNetifName()))) < 0)
-    {
-        perror("Server-setsockopt() error for SO_BINDTODEVICE");
-        printf("Server-setsockopt() error for SO_BINDTODEVICE %s\n", strerror(errno));
-        std::abort();
-    }
-    int n;
-    if (setsockopt(mListeningCtx.fd, SOL_SOCKET, SO_REUSEADDR, (const char *)&n, sizeof(n)) != 0)
-    {
-        otbrLogInfo("[srpl] Failed to bind socket");
-        std::abort();
-    }
-    sockaddr_in6 sockAddr;
+
+    VerifyOrExit(!setsockopt(mListeningCtx.fd, SOL_SOCKET, SO_BINDTODEVICE, otSysGetInfraNetifName(),
+                             strlen(otSysGetInfraNetifName())));
+    VerifyOrExit(!setsockopt(mListeningCtx.fd, SOL_SOCKET, SO_REUSEADDR, (const uint8_t *)&kOne, sizeof(kOne)));
+    VerifyOrExit(!setsockopt(mListeningCtx.fd, SOL_SOCKET, SO_REUSEPORT, (const uint8_t *)&kOne, sizeof(kOne)));
+
     sockAddr.sin6_family = AF_INET6;
     sockAddr.sin6_addr   = in6addr_any;
     sockAddr.sin6_port   = htons(kListeningPort);
-    //        sockAddr.sin6_port   = ot::Encoding::BigEndian::HostSwap16(kListeningPort);
-    otbrLogInfo("INFRA INTERFACE: %s port = %d", otSysGetInfraNetifName(), sockAddr.sin6_port);
-
-    if (bind(mListeningCtx.fd, (struct sockaddr *)&sockAddr, sizeof(sockAddr)) != 0)
-    {
-        otbrLogInfo("[srpl] Failed to bind socket");
-        std::abort();
-        //            DieNow(OT_EXIT_ERROR_ERRNO);
-    }
-    mbedtls_net_set_nonblock(&mListeningCtx);
-
-    if (listen(mListeningCtx.fd, 10) != 0)
-    {
-        otbrLogInfo("[srpl] Failed to listen on socket");
-        std::abort();
-        //            DieNow(OT_EXIT_ERROR_ERRNO);
-    }
-    otbrLogInfo("Listening socket created!!!");
+    VerifyOrExit(!bind(mListeningCtx.fd, (struct sockaddr *)&sockAddr, sizeof(sockAddr)));
+    VerifyOrExit(!mbedtls_net_set_nonblock(&mListeningCtx));
+    VerifyOrExit(!listen(mListeningCtx.fd, kMaxQueuedConnections));
 
     mListeningEnabled = true;
+
+    otbrLogInfo("DSO socket starts listening");
 
 exit:
     return;
@@ -279,136 +227,147 @@ void DsoAgent::Remove(otPlatDsoConnection *aConnection)
 
 otError DsoAgent::DsoConnection::Connect(const otSockAddr *aPeerSockAddr)
 {
-    otError error = OT_ERROR_NONE;
-    int     ret;
-    char    buf[OT_IP6_ADDRESS_STRING_SIZE];
+    otError     error = OT_ERROR_NONE;
+    int         ret;
+    char        addrBuf[OT_IP6_ADDRESS_STRING_SIZE];
+    std::string portString;
 
-    mPeerSockAddr          = *aPeerSockAddr;
-    std::string portString = std::to_string(aPeerSockAddr->mPort);
+    VerifyOrExit(!mConnected);
 
-    otIp6AddressToString(&aPeerSockAddr->mAddress, buf, sizeof(buf));
-    otbrLogInfo("###### connecting to : %s %s", buf, portString.c_str());
+    mPeerSockAddr = *aPeerSockAddr;
+    portString    = std::to_string(aPeerSockAddr->mPort);
+    otIp6AddressToString(&aPeerSockAddr->mAddress, addrBuf, sizeof(addrBuf));
 
-    if ((ret = mbedtls_net_connect(&mCtx, buf, portString.c_str(), MBEDTLS_NET_PROTO_TCP)) != 0)
-    {
-        otbrLogInfo("address: %s, port: %u", buf, aPeerSockAddr->mPort);
-        otbrLogInfo("mbedtls net connect failed: %s", MbedErrorToString(ret));
-        error = OT_ERROR_FAILED;
-        ExitNow();
-    }
+    otbrLogInfo("Connecting to %s:%s", addrBuf, portString.c_str());
 
-    VerifyOrExit((ret = mbedtls_net_set_nonblock(&mCtx)) == 0, error = OT_ERROR_FAILED);
-    otbrLogInfo("###### mbedtls net connect succeeded: %s", MbedErrorToString(ret));
+    VerifyOrExit(!(ret = mbedtls_net_connect(&mCtx, addrBuf, portString.c_str(), MBEDTLS_NET_PROTO_TCP)),
+                 otbrLogWarning("Failed to connect: %d", ret));
+    VerifyOrExit(!(ret = mbedtls_net_set_nonblock(&mCtx)), otbrLogWarning("Failed to set non-blocking: %d", ret));
+
     otPlatDsoHandleConnected(mConnection);
     mConnected = true;
 
 exit:
-    if (error != OT_ERROR_NONE)
+    if (!mConnected)
     {
-        otbrLogInfo("???? mbedtls net connect failed: %s", MbedErrorToString(ret));
+        error = OT_ERROR_FAILED;
     }
     return error;
 }
 
 void DsoAgent::DsoConnection::Send(otMessage *aMessage)
 {
-    uint8_t buf[1600];
-    auto    len = otMessageRead(aMessage, 0, buf + 2, sizeof(buf) - 2);
-    //        otDumpInfoPlat("going to send DSO payload", buf, len);
-    uint16_t size = otMessageGetLength(aMessage);
-    otbrLogInfo("Write: size = %hu", size);
-    //        size = Encoding::BigEndian::HostSwap16(size);
-    size = htons(size);
-    memcpy(buf, &size, 2);
-    len += 2;
-    // TODO: handle insufficient buffer size
-    int err = mbedtls_net_send(&mCtx, buf, len);
-    if (err < 0)
-    {
-        otbrLogInfo("failed to send message: %s", MbedErrorToString(err));
-    }
-    else
-    {
-        otDumpInfoPlat("@@@@@@@ sending DSO message: ", buf, len);
-    }
-}
+    uint16_t             length = otMessageGetLength(aMessage);
+    std::vector<uint8_t> buf(length + kTwo);
+    uint16_t             lengthInBigEndian = htons(length);
 
-void DsoAgent::DsoConnection::HandleReceive(void)
-{
-    int ret;
+    otbrLogInfo("Sending a message with length %hu", length);
 
-    otbrLogInfo("handle receive fd: %d Connected: %d", mCtx.fd, mConnected);
-    VerifyOrExit(mConnected);
+    memcpy(buf.data(), &lengthInBigEndian, kTwo);
+    VerifyOrExit(length == otMessageRead(aMessage, 0, buf.data() + kTwo, length),
+                 otbrLogWarning("Failed to read message data"));
+    VerifyOrExit(mbedtls_net_send(&mCtx, buf.data(), buf.size()) > 0, otbrLogWarning("Failed to send DSO message"));
+    // TODO You may need to keep sending until all the data is sent
 
-    ret = mbedtls_net_recv(&mCtx, mBuffer + mBufferEnd, sizeof(mBuffer) - mBufferEnd);
-    otbrLogInfo("handle receive fd: %d Connected: %d ret: %d", mCtx.fd, mConnected, ret);
-    if (ret < 0)
-    {
-        if (ret != MBEDTLS_ERR_SSL_WANT_READ)
-        {
-            otbrLogInfo("failed to receive message: %s", MbedErrorToString(ret));
-        }
-        ExitNow();
-    }
-    if (ret == 0)
-    {
-        ExitNow();
-    }
-    otDumpInfoPlat("Received DSO message: ", mBuffer + mBufferEnd, ret);
-    mBufferEnd += ret;
-
-    while (true)
-    {
-        if (!mPendingMessage)
-        {
-            assert(mWantMessageSize == 0);
-            if (static_cast<int32_t>(mBufferEnd) - mBufferBegin >= static_cast<int32_t>(sizeof(uint16_t)))
-            {
-                mWantMessageSize = ntohs(*(reinterpret_cast<uint16_t *>(mBuffer + mBufferBegin)));
-                //                            mWantMessageSize =
-                //                        Encoding::BigEndian::HostSwap16(*(reinterpret_cast<uint16_t *>(mBuffer
-                //                        + mBufferBegin)));
-                if (mWantMessageSize == 0)
-                {
-                    Disconnect(OT_PLAT_DSO_DISCONNECT_MODE_FORCIBLY_ABORT);
-                    ExitNow();
-                }
-                mBufferBegin += sizeof(uint16_t);
-                VerifyOrDie(mPendingMessage = otIp6NewMessage(otPlatDsoGetInstance(mConnection), nullptr), 1);
-                assert(otMessageGetLength(mPendingMessage) == 0);
-            }
-            else
-            {
-                break;
-            }
-        }
-        otbrLogInfo("Read: mWantMessageSize = %lu mBufferBegin = %hu mBufferEnd = %hu", mWantMessageSize, mBufferBegin,
-                    mBufferEnd);
-        int32_t readLen = std::min(static_cast<int32_t>(mWantMessageSize) - otMessageGetLength(mPendingMessage),
-                                   static_cast<int32_t>(mBufferEnd) - mBufferBegin);
-        VerifyOrDie(readLen >= 0, 1);
-        VerifyOrDie(otMessageAppend(mPendingMessage, mBuffer + mBufferBegin, readLen) == OT_ERROR_NONE, 1);
-        mBufferBegin += readLen;
-        if (otMessageGetLength(mPendingMessage) == mWantMessageSize)
-        {
-            otbrLogInfo("handle DSO receive: %lu", mWantMessageSize);
-            otPlatDsoHandleReceive(mConnection, mPendingMessage);
-            mPendingMessage  = nullptr;
-            mWantMessageSize = 0;
-        }
-        if (mBufferBegin == mBufferEnd)
-        {
-            mBufferBegin = mBufferEnd = 0;
-            break;
-        }
-    }
 exit:
     return;
 }
 
+void DsoAgent::DsoConnection::HandleReceive(void)
+{
+    int     ret;
+    uint8_t buf[kRxBufferSize];
+
+    VerifyOrExit(mConnected);
+
+    if (mNeedBytes)
+    {
+        ret = mbedtls_net_recv(&mCtx, buf, std::min(sizeof(buf), mNeedBytes));
+        VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
+        VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
+
+        SuccessOrExit(otMessageAppend(mPendingMessage, buf, ret));
+        mNeedBytes -= ret;
+
+        if (!mNeedBytes)
+        {
+            otPlatDsoHandleReceive(mConnection, mPendingMessage);
+            mPendingMessage = nullptr;
+        }
+    }
+    else
+    {
+        assert(mLengthBuffer.size() < kTwo);
+        assert(mPendingMessage == nullptr);
+
+        ret = mbedtls_net_recv(&mCtx, buf, kTwo - mLengthBuffer.size());
+
+        VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
+        VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
+
+        for (int i = 0; i < ret; ++i)
+        {
+            mLengthBuffer.push_back(buf[i]);
+        }
+
+        if (mLengthBuffer.size() == 2)
+        {
+            mNeedBytes      = mLengthBuffer[0] << 8 | mLengthBuffer[1];
+            mPendingMessage = otIp6NewMessage(otPlatDsoGetInstance(mConnection), nullptr);
+            mLengthBuffer.clear();
+        }
+    }
+
+exit:
+    return;
+}
+
+void DsoAgent::HandleIncomingConnection(otInstance         *aInstance,
+                                        mbedtls_net_context aCtx,
+                                        uint8_t            *aAddress,
+                                        size_t              aAddressLength)
+{
+    otSockAddr           sockAddr;
+    otPlatDsoConnection *conn;
+    in6_addr            *addrIn6    = nullptr;
+    bool                 successful = false;
+
+    VerifyOrExit(!mbedtls_net_set_nonblock(&aCtx), otbrLogWarning("Failed to set the socket as non-blocking"));
+
+    if (aAddressLength == OT_IP6_ADDRESS_SIZE)
+    {
+        Ip6Address address;
+
+        addrIn6 = reinterpret_cast<in6_addr *>(aAddress);
+        memcpy(&sockAddr.mAddress.mFields.m8, addrIn6, aAddressLength);
+        sockAddr.mPort = 0; // Mbed TLS doesn't provide the client's port number.
+
+        address.CopyFrom(*addrIn6);
+        otbrLogInfo("Receiving connection from %s", address.ToString().c_str());
+    }
+    else
+    {
+        otbrLogInfo("Unsupported address length: %d", aAddressLength);
+        ExitNow();
+    }
+
+    conn = otPlatDsoAccept(aInstance, &sockAddr);
+
+    VerifyOrExit(conn != nullptr, otbrLogInfo("Failed to accept connection"));
+
+    FindOrCreate(conn, aCtx);
+    otPlatDsoHandleConnected(conn);
+    successful = true;
+
+exit:
+    if (!successful)
+    {
+        mbedtls_net_close(&aCtx);
+    }
+}
+
 void DsoAgent::DsoConnection::Disconnect(otPlatDsoDisconnectMode aMode)
 {
-    OT_UNUSED_VARIABLE(aMode);
     switch (aMode)
     {
         // TODO handle them properly
@@ -422,11 +381,9 @@ void DsoAgent::DsoConnection::Disconnect(otPlatDsoDisconnectMode aMode)
         otbrLogInfo("unknown disconnection way");
         break;
     }
+
     mConnected = false;
-    mCtx       = {};
-    // In particular, calling `otPlatDsoDisconnect()`
-    //  * MUST NOT trigger the callback `otPlatDsoHandleDisconnected()`.
-    //        otPlatDsoHandleDisconnected(mConnection, aMode);
+    mbedtls_net_init(&mCtx);
 }
 
 } // namespace dso

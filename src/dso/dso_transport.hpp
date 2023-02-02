@@ -69,22 +69,33 @@ public:
     void SetEnabled(otInstance *aInstance, bool aEnabled);
 
     DsoConnection *Find(otPlatDsoConnection *aConnection);
-    DsoConnection *FindOrCreate(otPlatDsoConnection *aConnection, mbedtls_net_context aCtx = {});
+    DsoConnection *FindOrCreate(otPlatDsoConnection *aConnection);
+    DsoConnection *FindOrCreate(otPlatDsoConnection *aConnection, mbedtls_net_context aCtx);
 
     void Remove(otPlatDsoConnection *aConnection);
 
-    void ProcessOutgoingConnections();
-    void ProcessIncomingConnections(otInstance *aInstance);
+    void ProcessConnections(void);
+    void HandleIncomingConnections(otInstance *aInstance);
 
 private:
     class DsoConnection : NonCopyable
     {
     public:
+        explicit DsoConnection(otPlatDsoConnection *aConnection)
+            : mConnection(aConnection)
+            , mCtx()
+            , mConnected(false)
+        {
+            mbedtls_net_init(&mCtx);
+        }
+
         DsoConnection(otPlatDsoConnection *aConnection, mbedtls_net_context aCtx)
             : mConnection(aConnection)
             , mCtx(aCtx)
+            , mConnected(true)
         {
         }
+
         ~DsoConnection(void) { mbedtls_net_free(&mCtx); }
 
         otError Connect(const otSockAddr *aPeerSockAddr);
@@ -95,23 +106,34 @@ private:
 
         void Disconnect(otPlatDsoDisconnectMode aMode);
 
-        bool mConnected = false;
-
     private:
+        static constexpr size_t kRxBufferSize = 512;
+
         otPlatDsoConnection *mConnection;
         otSockAddr           mPeerSockAddr{};
-        otMessage           *mPendingMessage  = nullptr;
-        size_t               mWantMessageSize = 0;
-        uint16_t             mBufferBegin     = 0;
-        uint16_t             mBufferEnd       = 0;
-        uint8_t              mBuffer[2048];
+        otMessage           *mPendingMessage    = nullptr;
+        size_t               mWantMessageLength = 0;
+        size_t               mNeedBytes = 0;
+        uint16_t             mBufferBegin       = 0;
+        uint16_t             mRxBufferEnd       = 0;
+        std::vector<uint8_t> mLengthBuffer;
         mbedtls_net_context  mCtx;
+        //        std::deque<uint8_t>  mRxBuffer;
+        bool mConnected = false;
     };
 
-    static constexpr uint16_t kListeningPort = 853;
+    void HandleIncomingConnection(otInstance         *aInstance,
+                                  mbedtls_net_context aCtx,
+                                  uint8_t            *aAddress,
+                                  size_t              aAddressLength);
+
+    static constexpr uint16_t kListeningPort        = 853;
+    static constexpr int      kMaxQueuedConnections = 10;
+    static constexpr size_t   kMessageBufferSize    = 1024;
+    static constexpr size_t   kTwo                  = 2;
 
     bool                mListeningEnabled = false;
-    mbedtls_net_context mListeningCtx{};
+    mbedtls_net_context mListeningCtx;
 
     std::map<otPlatDsoConnection *, std::unique_ptr<DsoConnection>> mMap;
 };
@@ -119,4 +141,4 @@ private:
 } // namespace dso
 } // namespace otbr
 
-#endif //
+#endif
