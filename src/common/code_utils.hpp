@@ -157,7 +157,7 @@
 #define OTBR_NOOP
 #define OTBR_UNUSED_VARIABLE(variable) ((void)(variable))
 
-template <typename T, typename... Args> std::unique_ptr<T> MakeUnique(Args &&... args)
+template <typename T, typename... Args> std::unique_ptr<T> MakeUnique(Args &&...args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }

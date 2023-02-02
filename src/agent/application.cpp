@@ -79,6 +79,7 @@ Application::Application(const std::string               &aInterfaceName,
 #if OTBR_ENABLE_VENDOR_SERVER
     , mVendorServer(mNcp)
 #endif
+    , mDsoAgent()
 {
     OTBR_UNUSED_VARIABLE(aRestListenAddress);
 }
@@ -147,7 +148,6 @@ otbrError Application::Run(void)
     // allow quitting elegantly
     signal(SIGTERM, HandleSignal);
 
-
     while (!sShouldTerminate)
     {
         otbr::MainloopContext mainloop;
@@ -161,7 +161,6 @@ otbrError Application::Run(void)
         FD_ZERO(&mainloop.mErrorFdSet);
 
         MainloopManager::GetInstance().Update(mainloop);
-
 
         rval = select(mainloop.mMaxFd + 1, &mainloop.mReadFdSet, &mainloop.mWriteFdSet, &mainloop.mErrorFdSet,
                       &mainloop.mTimeout);

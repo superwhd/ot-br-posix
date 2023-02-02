@@ -294,10 +294,6 @@ public:
 
     void CopyFrom(const struct in_addr &aInAddr);
 
-    bool IsIpv4Mapped() const {
-        return m64[0] == 0 && m16[4] == 0 && m16[5] == 0xffff;
-    }
-
     union
     {
         uint8_t  m8[16];
