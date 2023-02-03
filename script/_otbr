@@ -78,6 +78,7 @@ otbr_install()
         # Force re-evaluation of version strings
         "-DOTBR_VERSION="
         "-DOT_PACKAGE_VERSION="
+        "-DOT_SRP_REPLICATION=ON"
         "${otbr_options[@]}"
     )
 
