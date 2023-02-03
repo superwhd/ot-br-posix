@@ -46,12 +46,14 @@ static otbr::SrplDnssd::SrplDnssd *sSrplDnssd = nullptr;
 extern "C" void otPlatSrplRegisterDnssdService(otInstance *aInstance, const uint8_t *aTxtData, uint16_t aTxtLength)
 {
     OTBR_UNUSED_VARIABLE(aInstance);
+
     sSrplDnssd->RegisterService(aTxtData, aTxtLength);
 }
 
 extern "C" void otPlatSrplUnregisterDnssdService(otInstance *aInstance)
 {
     OTBR_UNUSED_VARIABLE(aInstance);
+
     sSrplDnssd->UnregisterService();
 }
 
@@ -112,12 +114,18 @@ void SrplDnssd::RegisterService(const uint8_t *aTxtData, uint8_t aTxtLength)
     otbr::Mdns::Publisher::TxtList txtList;
 
     SuccessOrExit(otbr::Mdns::Publisher::DecodeTxtData(txtList, aTxtData, aTxtLength));
+
+    otbrLogInfo("Publishing SRPL service");
     mPublisher.PublishService("", "", kServiceType, {}, kPort, txtList, [this](otbrError aError) {
-        otbrLogResult(aError, "Publish SRPL service");
+        otbrLogResult(aError, "Result of publishing SRPL service");
         if (aError == OTBR_ERROR_NONE)
         {
-            mServiceInstanceName = mPublisher.FindServiceRegistrationByType(kServiceType)->mName;
-            otbrLogInfo("setting mServiceInstance (%s)", mServiceInstanceName.c_str());
+            auto serviceRegistration = mPublisher.FindServiceRegistrationByType(kServiceType);
+            if (serviceRegistration)
+            {
+                mServiceInstanceName = serviceRegistration->mName;
+                otbrLogInfo("SRPL service instance name is %s", mServiceInstanceName.c_str());
+            }
         }
     });
 
@@ -129,9 +137,10 @@ void SrplDnssd::UnregisterService()
 {
     otbrLogInfo("Unpublishing SRPL service: %s", mServiceInstanceName.c_str());
     mPublisher.UnpublishService(mServiceInstanceName, kServiceType, [this](otbrError aError) {
-        otbrLogResult(aError, "Result of unpublishing SRPL service %s.%s.local", mServiceInstanceName.c_str(),
-                      kServiceType);
-        mServiceInstanceName.clear();
+        if (aError == OTBR_ERROR_NONE)
+        {
+            mServiceInstanceName.clear();
+        }
     });
 }
 
@@ -139,27 +148,24 @@ void SrplDnssd::OnServiceInstanceResolved(const std::string &aType, const Discov
 {
     otPlatSrplPartnerInfo partnerInfo;
 
-    otbrLogInfo("# of discovered addresses: %d", aInstanceInfo.mAddresses.size());
-
     VerifyOrExit(IsBrowsing());
     VerifyOrExit(StringUtils::EqualCaseInsensitive(aType, kServiceType));
     VerifyOrExit(!StringUtils::EqualCaseInsensitive(aInstanceInfo.mName, mServiceInstanceName));
-    // Also need to check by addresses to mark as 'me'.
+
+    // TODO: Also need to check by addresses to mark as 'me'.
 
     partnerInfo.mRemoved = aInstanceInfo.mRemoved;
-    otbrLogInfo("discovered SRPL peer: %s", aInstanceInfo.mName.c_str());
+    otbrLogInfo("Discovered SRPL peer: %s", aInstanceInfo.mName.c_str());
 
     if (!partnerInfo.mRemoved)
     {
         VerifyOrExit(!aInstanceInfo.mAddresses.empty());
-        // TODO choose the largest scope
-        // Currently the mDNS publisher only returns 1 address in every callback, we may want to wait for some time to
+        // TODO: choose the address with the largest scope
+        // Currently the mDNS publisher only returns 1 address in every callback, it may need to wait for some time to
         // collect all discovered addresses and decide which address to use.
-        SuccessOrDie(otIp6AddressFromString(aInstanceInfo.mAddresses.front().ToString().c_str(),
-                                            &partnerInfo.mSockAddr.mAddress),
-                     "failed to parse address");
+        SuccessOrExit(otIp6AddressFromString(aInstanceInfo.mAddresses.front().ToString().c_str(),
+                                             &partnerInfo.mSockAddr.mAddress));
 
-        otbrLogInfo("addr: %s %d", aInstanceInfo.mAddresses.front().ToString().c_str(), aInstanceInfo.mPort);
         partnerInfo.mTxtData        = aInstanceInfo.mTxtData.data();
         partnerInfo.mTxtLength      = aInstanceInfo.mTxtData.size();
         partnerInfo.mSockAddr.mPort = aInstanceInfo.mPort;

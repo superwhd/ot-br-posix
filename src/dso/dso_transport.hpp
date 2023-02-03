@@ -53,9 +53,7 @@
 namespace otbr {
 namespace dso {
 
-// TODO: queue tx packets
-const char *MbedErrorToString(int aError);
-
+// TODO: Support DNS-over-TLS
 class DsoAgent
 {
 private:

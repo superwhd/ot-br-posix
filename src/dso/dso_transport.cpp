@@ -30,6 +30,7 @@
 
 #include "dso_transport.hpp"
 
+#include <cinttypes>
 #include <memory>
 
 #include "mbedtls/net_sockets.h"
@@ -127,6 +128,7 @@ DsoAgent::DsoConnection *DsoAgent::FindOrCreate(otPlatDsoConnection *aConnection
 void DsoAgent::ProcessConnections(void)
 {
     std::vector<DsoConnection *> connections;
+
     connections.reserve(mMap.size());
     for (auto &conn : mMap)
     {
@@ -134,7 +136,6 @@ void DsoAgent::ProcessConnections(void)
     }
     for (const auto &conn : connections)
     {
-        otbrLogInfo("processing connection: ");
         conn->HandleReceive();
     }
 }
@@ -261,14 +262,14 @@ void DsoAgent::DsoConnection::Send(otMessage *aMessage)
     std::vector<uint8_t> buf(length + kTwo);
     uint16_t             lengthInBigEndian = htons(length);
 
-    otbrLogInfo("Sending a message with length %hu", length);
+    otbrLogInfo("Sending a message with length %" PRIu16, length);
 
     memcpy(buf.data(), &lengthInBigEndian, kTwo);
     VerifyOrExit(length == otMessageRead(aMessage, 0, buf.data() + kTwo, length),
                  otbrLogWarning("Failed to read message data"));
     VerifyOrExit(mbedtls_net_send(&mCtx, buf.data(), buf.size()) > 0, otbrLogWarning("Failed to send DSO message"));
-    // TODO You may need to keep sending until all the data is sent
 
+    // TODO: May need to keep sending until all the data is sent
 exit:
     return;
 }
@@ -280,41 +281,43 @@ void DsoAgent::DsoConnection::HandleReceive(void)
 
     VerifyOrExit(mConnected);
 
-    if (mNeedBytes)
+    while (true)
     {
-        ret = mbedtls_net_recv(&mCtx, buf, std::min(sizeof(buf), mNeedBytes));
-        VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
-        VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
-
-        SuccessOrExit(otMessageAppend(mPendingMessage, buf, ret));
-        mNeedBytes -= ret;
-
-        if (!mNeedBytes)
+        if (mNeedBytes)
         {
-            otPlatDsoHandleReceive(mConnection, mPendingMessage);
-            mPendingMessage = nullptr;
+            ret = mbedtls_net_recv(&mCtx, buf, std::min(sizeof(buf), mNeedBytes));
+            VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
+            VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
+
+            SuccessOrExit(otMessageAppend(mPendingMessage, buf, ret));
+            mNeedBytes -= ret;
+
+            if (!mNeedBytes)
+            {
+                otPlatDsoHandleReceive(mConnection, mPendingMessage);
+                mPendingMessage = nullptr;
+            }
         }
-    }
-    else
-    {
-        assert(mLengthBuffer.size() < kTwo);
-        assert(mPendingMessage == nullptr);
-
-        ret = mbedtls_net_recv(&mCtx, buf, kTwo - mLengthBuffer.size());
-
-        VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
-        VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
-
-        for (int i = 0; i < ret; ++i)
+        else
         {
-            mLengthBuffer.push_back(buf[i]);
-        }
+            assert(mLengthBuffer.size() < kTwo);
+            assert(mPendingMessage == nullptr);
 
-        if (mLengthBuffer.size() == 2)
-        {
-            mNeedBytes      = mLengthBuffer[0] << 8 | mLengthBuffer[1];
-            mPendingMessage = otIp6NewMessage(otPlatDsoGetInstance(mConnection), nullptr);
-            mLengthBuffer.clear();
+            ret = mbedtls_net_recv(&mCtx, buf, kTwo - mLengthBuffer.size());
+
+            VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
+            VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
+
+            for (int i = 0; i < ret; ++i)
+            {
+                mLengthBuffer.push_back(buf[i]);
+            }
+            if (mLengthBuffer.size() == 2)
+            {
+                mNeedBytes      = mLengthBuffer[0] << 8 | mLengthBuffer[1];
+                mPendingMessage = otIp6NewMessage(otPlatDsoGetInstance(mConnection), nullptr);
+                mLengthBuffer.clear();
+            }
         }
     }
 
@@ -334,6 +337,7 @@ void DsoAgent::HandleIncomingConnection(otInstance         *aInstance,
 
     VerifyOrExit(!mbedtls_net_set_nonblock(&aCtx), otbrLogWarning("Failed to set the socket as non-blocking"));
 
+    // TODO: support IPv4
     if (aAddressLength == OT_IP6_ADDRESS_SIZE)
     {
         Ip6Address address;
@@ -347,7 +351,7 @@ void DsoAgent::HandleIncomingConnection(otInstance         *aInstance,
     }
     else
     {
-        otbrLogInfo("Unsupported address length: %d", aAddressLength);
+        otbrLogInfo("Unsupported address length: %zu", aAddressLength);
         ExitNow();
     }
 
@@ -368,20 +372,23 @@ exit:
 
 void DsoAgent::DsoConnection::Disconnect(otPlatDsoDisconnectMode aMode)
 {
+    struct linger l;
+
     switch (aMode)
     {
-        // TODO handle them properly
     case OT_PLAT_DSO_DISCONNECT_MODE_FORCIBLY_ABORT:
-        mbedtls_net_close(&mCtx);
+        l.l_onoff  = 1;
+        l.l_linger = 0;
+        setsockopt(mCtx.fd, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
         break;
     case OT_PLAT_DSO_DISCONNECT_MODE_GRACEFULLY_CLOSE:
-        mbedtls_net_close(&mCtx);
         break;
     default:
-        otbrLogInfo("unknown disconnection way");
+        otbrLogWarning("Unknown disconnection mode: %d", aMode);
         break;
     }
 
+    mbedtls_net_close(&mCtx);
     mConnected = false;
     mbedtls_net_init(&mCtx);
 }
