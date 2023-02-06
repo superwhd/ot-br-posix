@@ -290,10 +290,6 @@ public:
      */
     void CopyFrom(const struct in6_addr &aIn6Addr);
 
-    void CopyTo(struct in_addr &aInAddr);
-
-    void CopyFrom(const struct in_addr &aInAddr);
-
     union
     {
         uint8_t  m8[16];

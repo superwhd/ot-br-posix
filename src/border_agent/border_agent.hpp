@@ -145,7 +145,9 @@ private:
 #if OTBR_ENABLE_TREL
     TrelDnssd::TrelDnssd mTrelDnssd;
 #endif
+#if OTBR_ENABLE_SRP_REPLICATION
     SrplDnssd::SrplDnssd mSrplDnssd;
+#endif
 
     std::string mServiceInstanceName;
 };

@@ -522,15 +522,12 @@ otbrError PublisherMDnsSd::PublishServiceImpl(const std::string &aHostName,
 
     SuccessOrExit(ret = EncodeTxtData(aTxtList, txt));
     otbrLogInfo("Registering new service %s.%s.local, serviceRef = %p", aName.c_str(), regType.c_str(), serviceRef);
-    otbrLogInfo("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     SuccessOrExit(error = DNSServiceRegister(&serviceRef, kDNSServiceFlagsNoAutoRename, kDNSServiceInterfaceIndexAny,
                                              serviceNameCString, regType.c_str(),
                                              /* domain */ nullptr, hostNameCString, htons(aPort), txt.size(),
                                              txt.data(), HandleServiceRegisterResult, this));
-    otbrLogInfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
     AddServiceRegistration(std::unique_ptr<DnssdServiceRegistration>(new DnssdServiceRegistration(
         aHostName, aName, aType, sortedSubTypeList, aPort, sortedTxtList, std::move(aCallback), serviceRef, this)));
-    otbrLogInfo("###################################");
 
 exit:
     if (error != kDNSServiceErr_NoError || ret != OTBR_ERROR_NONE)

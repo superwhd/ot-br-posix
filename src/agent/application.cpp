@@ -37,7 +37,6 @@
 #include <systemd/sd-daemon.h>
 #endif
 
-#include <openthread/srp_replication.h>
 #include "agent/application.hpp"
 #include "common/code_utils.hpp"
 #include "common/mainloop_manager.hpp"
@@ -79,7 +78,9 @@ Application::Application(const std::string               &aInterfaceName,
 #if OTBR_ENABLE_VENDOR_SERVER
     , mVendorServer(mNcp)
 #endif
+#if OTBR_ENABLE_DNS_DSO
     , mDsoAgent()
+#endif
 {
     OTBR_UNUSED_VARIABLE(aRestListenAddress);
 }

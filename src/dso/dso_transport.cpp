@@ -26,6 +26,8 @@
  *    POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if OTBR_ENABLE_DNS_DSO
+
 #define OTBR_LOG_TAG "DSO"
 
 #include "dso_transport.hpp"
@@ -256,6 +258,29 @@ exit:
     return error;
 }
 
+void DsoAgent::DsoConnection::Disconnect(otPlatDsoDisconnectMode aMode)
+{
+    struct linger l;
+
+    switch (aMode)
+    {
+    case OT_PLAT_DSO_DISCONNECT_MODE_FORCIBLY_ABORT:
+        l.l_onoff  = 1;
+        l.l_linger = 0;
+        setsockopt(mCtx.fd, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+        break;
+    case OT_PLAT_DSO_DISCONNECT_MODE_GRACEFULLY_CLOSE:
+        break;
+    default:
+        otbrLogWarning("Unknown disconnection mode: %d", aMode);
+        break;
+    }
+
+    mbedtls_net_close(&mCtx);
+    mConnected = false;
+    mbedtls_net_init(&mCtx);
+}
+
 void DsoAgent::DsoConnection::Send(otMessage *aMessage)
 {
     uint16_t             length = otMessageGetLength(aMessage);
@@ -370,28 +395,7 @@ exit:
     }
 }
 
-void DsoAgent::DsoConnection::Disconnect(otPlatDsoDisconnectMode aMode)
-{
-    struct linger l;
-
-    switch (aMode)
-    {
-    case OT_PLAT_DSO_DISCONNECT_MODE_FORCIBLY_ABORT:
-        l.l_onoff  = 1;
-        l.l_linger = 0;
-        setsockopt(mCtx.fd, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
-        break;
-    case OT_PLAT_DSO_DISCONNECT_MODE_GRACEFULLY_CLOSE:
-        break;
-    default:
-        otbrLogWarning("Unknown disconnection mode: %d", aMode);
-        break;
-    }
-
-    mbedtls_net_close(&mCtx);
-    mConnected = false;
-    mbedtls_net_init(&mCtx);
-}
-
 } // namespace dso
 } // namespace otbr
+
+#endif

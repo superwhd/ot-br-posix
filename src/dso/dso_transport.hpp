@@ -26,6 +26,11 @@
  *    POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef OTBR_AGENT_DSO_TRANSPORT_HPP_
+#define OTBR_AGENT_DSO_TRANSPORT_HPP_
+
+#if OTBR_ENABLE_DNS_DSO
+
 #include <arpa/inet.h>
 #include <map>
 #include <netinet/in.h>
@@ -46,9 +51,6 @@
 #include "openthread/logging.h"
 #include "openthread/message.h"
 #include "openthread/platform/dso_transport.h"
-
-#ifndef OTBR_AGENT_DSO_TRANSPORT_HPP_
-#define OTBR_AGENT_DSO_TRANSPORT_HPP_
 
 namespace otbr {
 namespace dso {
@@ -94,29 +96,30 @@ private:
         {
         }
 
-        ~DsoConnection(void) { mbedtls_net_free(&mCtx); }
+        ~DsoConnection(void)
+        {
+            Disconnect(OT_PLAT_DSO_DISCONNECT_MODE_FORCIBLY_ABORT);
+            mbedtls_net_free(&mCtx);
+        }
 
         otError Connect(const otSockAddr *aPeerSockAddr);
+
+        void Disconnect(otPlatDsoDisconnectMode aMode);
 
         void Send(otMessage *aMessage);
 
         void HandleReceive(void);
-
-        void Disconnect(otPlatDsoDisconnectMode aMode);
 
     private:
         static constexpr size_t kRxBufferSize = 512;
 
         otPlatDsoConnection *mConnection;
         otSockAddr           mPeerSockAddr{};
-        otMessage           *mPendingMessage    = nullptr;
-        size_t               mWantMessageLength = 0;
-        size_t               mNeedBytes         = 0;
-        uint16_t             mBufferBegin       = 0;
-        uint16_t             mRxBufferEnd       = 0;
+        otMessage           *mPendingMessage = nullptr;
+        size_t               mNeedBytes      = 0;
         std::vector<uint8_t> mLengthBuffer;
         mbedtls_net_context  mCtx;
-        //        std::deque<uint8_t>  mRxBuffer;
+
         bool mConnected = false;
     };
 
@@ -127,7 +130,6 @@ private:
 
     static constexpr uint16_t kListeningPort        = 853;
     static constexpr int      kMaxQueuedConnections = 10;
-    static constexpr size_t   kMessageBufferSize    = 1024;
     static constexpr size_t   kTwo                  = 2;
 
     bool                mListeningEnabled = false;
@@ -138,5 +140,7 @@ private:
 
 } // namespace dso
 } // namespace otbr
+
+#endif
 
 #endif

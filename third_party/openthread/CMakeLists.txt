@@ -90,6 +90,8 @@ endif()
 set(OT_NAT64_TRANSLATOR ${OTBR_NAT64} CACHE BOOL "enable NAT64 translator" FORCE)
 set(OT_NAT64_BORDER_ROUTING ${OTBR_NAT64} CACHE BOOL "enable NAT64 in border routing manager" FORCE)
 
+set(OT_DNS_DSO {OTBR_DNS_DSO} CACHE BOOL "enable DSO support" FORCE)
+
 if (OTBR_SRP_REPLICATION)
     set(OT_SRP_REPLICATION ON CACHE BOOL "enable SRP replication" FORCE)
     set(OT_DNS_DSO ON CACHE BOOL "enable DSO support" FORCE)

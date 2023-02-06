@@ -36,14 +36,11 @@
 #include "mdns/mdns.hpp"
 
 #include <assert.h>
-#include "openthread/platform/dso_transport.h"
-#include "openthread/platform/srpl_dnssd.h"
 
 #include <algorithm>
 #include <functional>
 
 #include "common/code_utils.hpp"
-#include "openthread/instance.h"
 #include "utils/dns_utils.hpp"
 
 namespace otbr {
@@ -174,14 +171,14 @@ uint64_t Publisher::AddSubscriptionCallbacks(Publisher::DiscoveredServiceInstanc
 
     assert(subscriberId > 0);
 
-    otbrLogInfo("adding subscriber id: %llu", subscriberId);
-
     mDiscoveredCallbacks.emplace(subscriberId, std::make_pair(std::move(aInstanceCallback), std::move(aHostCallback)));
     return subscriberId;
 }
 
 void Publisher::OnServiceResolved(const std::string &aType, const DiscoveredInstanceInfo &aInstanceInfo)
 {
+    std::vector<uint64_t> subscriberIds;
+
     otbrLogInfo("Service %s is resolved successfully: %s %s host %s addresses %zu", aType.c_str(),
                 aInstanceInfo.mRemoved ? "remove" : "add", aInstanceInfo.mName.c_str(), aInstanceInfo.mHostName.c_str(),
                 aInstanceInfo.mAddresses.size());
@@ -198,9 +195,6 @@ void Publisher::OnServiceResolved(const std::string &aType, const DiscoveredInst
     UpdateMdnsResponseCounters(mTelemetryInfo.mServiceResolutions, OTBR_ERROR_NONE);
     UpdateServiceInstanceResolutionEmaLatency(aInstanceInfo.mName, aType, OTBR_ERROR_NONE);
 
-    otbrLogInfo("Number of callbacks %d", mDiscoveredCallbacks.size());
-
-    std::vector<uint64_t> subscriberIds;
     subscriberIds.reserve(mDiscoveredCallbacks.size());
     for (const auto &subCallback : mDiscoveredCallbacks)
     {
@@ -214,10 +208,6 @@ void Publisher::OnServiceResolved(const std::string &aType, const DiscoveredInst
             const auto &subCallback = *it;
             if (subCallback.second.first != nullptr)
             {
-                //                otbrLogInfo("subscriber id %llu %d %d %p %p", subCallback.first,
-                //                bool(subCallback.second.first),
-                //                            bool(subCallback.second.second), &subCallback.second.first,
-                //                            &subCallback.second.second);
                 subCallback.second.first(aType, aInstanceInfo);
             }
         }

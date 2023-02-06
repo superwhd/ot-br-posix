@@ -26,6 +26,10 @@
  *    POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if OTBR_ENABLE_SRP_REPLICATION
+
+#define OTBR_LOG_TAG "SrplDns"
+
 #include "srpl_dnssd/srpl_dnssd.hpp"
 
 #include "openthread/platform/srpl_dnssd.h"
@@ -37,9 +41,6 @@
 #include "openthread/openthread-system.h"
 #include "openthread/thread.h"
 #include "utils/string_utils.hpp"
-
-#undef OTBR_LOG_TAG
-#define OTBR_LOG_TAG "SrplDns"
 
 static otbr::SrplDnssd::SrplDnssd *sSrplDnssd = nullptr;
 
@@ -178,3 +179,5 @@ exit:
 
 } // namespace SrplDnssd
 } // namespace otbr
+
+#endif

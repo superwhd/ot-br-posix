@@ -29,6 +29,8 @@
 #ifndef OTBR_AGENT_SRPL_DNSSD_HPP_
 #define OTBR_AGENT_SRPL_DNSSD_HPP_
 
+#if OTBR_ENABLE_SRP_REPLICATION
+
 #include <openthread/instance.h>
 
 #include "common/types.hpp"
@@ -91,5 +93,7 @@ private:
 } // namespace SrplDnssd
 
 } // namespace otbr
+
+#endif // OTBR_ENABLE_SRP_REPLICATION
 
 #endif // OTBR_AGENT_SRPL_DNSSD_HPP_
