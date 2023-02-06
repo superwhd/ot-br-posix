@@ -76,7 +76,7 @@ private:
 
     using DiscoveredInstanceInfo = otbr::Mdns::Publisher::DiscoveredInstanceInfo;
 
-    bool IsBrowsing() const { return mSubscriberId != 0; }
+    bool IsBrowsing(void) const { return mSubscriberId != 0; }
 
     void OnServiceInstanceResolved(const std::string &aType, const DiscoveredInstanceInfo &aInstanceInfo);
 
