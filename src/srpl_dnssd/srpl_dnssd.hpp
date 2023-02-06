@@ -52,6 +52,12 @@ namespace SrplDnssd {
 class SrplDnssd
 {
 public:
+    /**
+     * This constructor initializes the SrplDnssd instance.
+     *
+     * @param aNcp
+     * @param aPublisher
+     */
     explicit SrplDnssd(Ncp::ControllerOpenThread &aNcp, Mdns::Publisher &aPublisher);
 
     void StartBrowse(void);

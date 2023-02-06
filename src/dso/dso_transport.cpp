@@ -286,7 +286,7 @@ void DsoAgent::DsoConnection::HandleReceive(void)
         if (mNeedBytes)
         {
             ret = mbedtls_net_recv(&mCtx, buf, std::min(sizeof(buf), mNeedBytes));
-            VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
+            VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ && ret != 0);
             VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
 
             SuccessOrExit(otMessageAppend(mPendingMessage, buf, ret));
@@ -305,14 +305,14 @@ void DsoAgent::DsoConnection::HandleReceive(void)
 
             ret = mbedtls_net_recv(&mCtx, buf, kTwo - mLengthBuffer.size());
 
-            VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ);
+            VerifyOrExit(ret != MBEDTLS_ERR_SSL_WANT_READ && ret != 0);
             VerifyOrExit(ret >= 0, otbrLogWarning("Failed to receive message: %d", ret));
 
             for (int i = 0; i < ret; ++i)
             {
                 mLengthBuffer.push_back(buf[i]);
             }
-            if (mLengthBuffer.size() == 2)
+            if (mLengthBuffer.size() == kTwo)
             {
                 mNeedBytes      = mLengthBuffer[0] << 8 | mLengthBuffer[1];
                 mPendingMessage = otIp6NewMessage(otPlatDsoGetInstance(mConnection), nullptr);

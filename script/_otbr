@@ -75,10 +75,10 @@ otbr_install()
         "-DOTBR_SRP_ADVERTISING_PROXY=ON"
         "-DOTBR_INFRA_IF_NAME=${INFRA_IF_NAME}"
         "-DOTBR_MDNS=${OTBR_MDNS:=mDNSResponder}"
+        "-DOTBR_SRP_REPLICATION=ON"
         # Force re-evaluation of version strings
         "-DOTBR_VERSION="
         "-DOT_PACKAGE_VERSION="
-        "-DOT_SRP_REPLICATION=ON"
         "${otbr_options[@]}"
     )
 

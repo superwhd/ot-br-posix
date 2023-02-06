@@ -111,7 +111,7 @@ private:
         otSockAddr           mPeerSockAddr{};
         otMessage           *mPendingMessage    = nullptr;
         size_t               mWantMessageLength = 0;
-        size_t               mNeedBytes = 0;
+        size_t               mNeedBytes         = 0;
         uint16_t             mBufferBegin       = 0;
         uint16_t             mRxBufferEnd       = 0;
         std::vector<uint8_t> mLengthBuffer;
