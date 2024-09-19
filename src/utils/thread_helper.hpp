@@ -344,6 +344,7 @@ private:
 #endif
 #if OTBR_ENABLE_TELEMETRY_DATA_API
 #if OTBR_ENABLE_BORDER_ROUTING
+    void RetrieveBorderRoutingCounters(threadnetwork::TelemetryData::BorderRoutingCounters &aBorderRoutingCounters);
     void RetrieveInfraLinkInfo(threadnetwork::TelemetryData::InfraLinkInfo &aInfraLinkInfo);
     void RetrieveExternalRouteInfo(threadnetwork::TelemetryData::ExternalRoutes &aExternalRouteInfo);
 #endif

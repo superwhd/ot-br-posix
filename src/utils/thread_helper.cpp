@@ -919,6 +919,84 @@ void ThreadHelper::DetachGracefullyCallback(void)
 
 #if OTBR_ENABLE_TELEMETRY_DATA_API
 #if OTBR_ENABLE_BORDER_ROUTING
+void ThreadHelper::RetrieveBorderRoutingCounters(
+    threadnetwork::TelemetryData::BorderRoutingCounters &aBorderRoutingCounters)
+{
+    // Begin of BorderRoutingCounters section.
+    const otBorderRoutingCounters *otBorderRoutingCounters = otIp6GetBorderRoutingCounters(mInstance);
+
+    aBorderRoutingCounters.mutable_inbound_unicast()->set_packet_count(
+        otBorderRoutingCounters->mInboundUnicast.mPackets);
+    aBorderRoutingCounters.mutable_inbound_unicast()->set_byte_count(otBorderRoutingCounters->mInboundUnicast.mBytes);
+    aBorderRoutingCounters.mutable_inbound_multicast()->set_packet_count(
+        otBorderRoutingCounters->mInboundMulticast.mPackets);
+    aBorderRoutingCounters.mutable_inbound_multicast()->set_byte_count(
+        otBorderRoutingCounters->mInboundMulticast.mBytes);
+    aBorderRoutingCounters.mutable_outbound_unicast()->set_packet_count(
+        otBorderRoutingCounters->mOutboundUnicast.mPackets);
+    aBorderRoutingCounters.mutable_outbound_unicast()->set_byte_count(otBorderRoutingCounters->mOutboundUnicast.mBytes);
+    aBorderRoutingCounters.mutable_outbound_multicast()->set_packet_count(
+        otBorderRoutingCounters->mOutboundMulticast.mPackets);
+    aBorderRoutingCounters.mutable_outbound_multicast()->set_byte_count(
+        otBorderRoutingCounters->mOutboundMulticast.mBytes);
+    aBorderRoutingCounters.set_ra_rx(otBorderRoutingCounters->mRaRx);
+    aBorderRoutingCounters.set_ra_tx_success(otBorderRoutingCounters->mRaTxSuccess);
+    aBorderRoutingCounters.set_ra_tx_failure(otBorderRoutingCounters->mRaTxFailure);
+    aBorderRoutingCounters.set_rs_rx(otBorderRoutingCounters->mRsRx);
+    aBorderRoutingCounters.set_rs_tx_success(otBorderRoutingCounters->mRsTxSuccess);
+    aBorderRoutingCounters.set_rs_tx_failure(otBorderRoutingCounters->mRsTxFailure);
+    aBorderRoutingCounters.mutable_inbound_internet()->set_packet_count(
+        otBorderRoutingCounters->mInboundInternet.mPackets);
+    aBorderRoutingCounters.mutable_inbound_internet()->set_byte_count(otBorderRoutingCounters->mInboundInternet.mBytes);
+    aBorderRoutingCounters.mutable_outbound_internet()->set_packet_count(
+        otBorderRoutingCounters->mOutboundInternet.mPackets);
+    aBorderRoutingCounters.mutable_outbound_internet()->set_byte_count(
+        otBorderRoutingCounters->mOutboundInternet.mBytes);
+
+#if OTBR_ENABLE_NAT64
+    {
+        auto nat64IcmpCounters = aBorderRoutingCounters.mutable_nat64_protocol_counters()->mutable_icmp();
+        auto nat64UdpCounters  = aBorderRoutingCounters.mutable_nat64_protocol_counters()->mutable_udp();
+        auto nat64TcpCounters  = aBorderRoutingCounters.mutable_nat64_protocol_counters()->mutable_tcp();
+        otNat64ProtocolCounters otCounters;
+
+        otNat64GetCounters(mInstance, &otCounters);
+        nat64IcmpCounters->set_ipv4_to_ipv6_packets(otCounters.mIcmp.m4To6Packets);
+        nat64IcmpCounters->set_ipv4_to_ipv6_bytes(otCounters.mIcmp.m4To6Bytes);
+        nat64IcmpCounters->set_ipv6_to_ipv4_packets(otCounters.mIcmp.m6To4Packets);
+        nat64IcmpCounters->set_ipv6_to_ipv4_bytes(otCounters.mIcmp.m6To4Bytes);
+        nat64UdpCounters->set_ipv4_to_ipv6_packets(otCounters.mUdp.m4To6Packets);
+        nat64UdpCounters->set_ipv4_to_ipv6_bytes(otCounters.mUdp.m4To6Bytes);
+        nat64UdpCounters->set_ipv6_to_ipv4_packets(otCounters.mUdp.m6To4Packets);
+        nat64UdpCounters->set_ipv6_to_ipv4_bytes(otCounters.mUdp.m6To4Bytes);
+        nat64TcpCounters->set_ipv4_to_ipv6_packets(otCounters.mTcp.m4To6Packets);
+        nat64TcpCounters->set_ipv4_to_ipv6_bytes(otCounters.mTcp.m4To6Bytes);
+        nat64TcpCounters->set_ipv6_to_ipv4_packets(otCounters.mTcp.m6To4Packets);
+        nat64TcpCounters->set_ipv6_to_ipv4_bytes(otCounters.mTcp.m6To4Bytes);
+    }
+
+    {
+        auto                 errorCounters = aBorderRoutingCounters.mutable_nat64_error_counters();
+        otNat64ErrorCounters otCounters;
+        otNat64GetErrorCounters(mInstance, &otCounters);
+
+        errorCounters->mutable_unknown()->set_ipv4_to_ipv6_packets(otCounters.mCount4To6[OT_NAT64_DROP_REASON_UNKNOWN]);
+        errorCounters->mutable_unknown()->set_ipv6_to_ipv4_packets(otCounters.mCount6To4[OT_NAT64_DROP_REASON_UNKNOWN]);
+        errorCounters->mutable_illegal_packet()->set_ipv4_to_ipv6_packets(
+            otCounters.mCount4To6[OT_NAT64_DROP_REASON_ILLEGAL_PACKET]);
+        errorCounters->mutable_illegal_packet()->set_ipv6_to_ipv4_packets(
+            otCounters.mCount6To4[OT_NAT64_DROP_REASON_ILLEGAL_PACKET]);
+        errorCounters->mutable_unsupported_protocol()->set_ipv4_to_ipv6_packets(
+            otCounters.mCount4To6[OT_NAT64_DROP_REASON_UNSUPPORTED_PROTO]);
+        errorCounters->mutable_unsupported_protocol()->set_ipv6_to_ipv4_packets(
+            otCounters.mCount6To4[OT_NAT64_DROP_REASON_UNSUPPORTED_PROTO]);
+        errorCounters->mutable_no_mapping()->set_ipv4_to_ipv6_packets(
+            otCounters.mCount4To6[OT_NAT64_DROP_REASON_NO_MAPPING]);
+        errorCounters->mutable_no_mapping()->set_ipv6_to_ipv4_packets(
+            otCounters.mCount6To4[OT_NAT64_DROP_REASON_NO_MAPPING]);
+    }
+#endif // OTBR_ENABLE_NAT64
+}
 void ThreadHelper::RetrieveInfraLinkInfo(threadnetwork::TelemetryData::InfraLinkInfo &aInfraLinkInfo)
 {
     {
@@ -1332,87 +1410,6 @@ otError ThreadHelper::RetrieveTelemetryData(Mdns::Publisher *aPublisher, threadn
     {
         // Begin of WpanBorderRouter section.
         auto wpanBorderRouter = telemetryData.mutable_wpan_border_router();
-        // Begin of BorderRoutingCounters section.
-        auto                           borderRoutingCouters    = wpanBorderRouter->mutable_border_routing_counters();
-        const otBorderRoutingCounters *otBorderRoutingCounters = otIp6GetBorderRoutingCounters(mInstance);
-
-        borderRoutingCouters->mutable_inbound_unicast()->set_packet_count(
-            otBorderRoutingCounters->mInboundUnicast.mPackets);
-        borderRoutingCouters->mutable_inbound_unicast()->set_byte_count(
-            otBorderRoutingCounters->mInboundUnicast.mBytes);
-        borderRoutingCouters->mutable_inbound_multicast()->set_packet_count(
-            otBorderRoutingCounters->mInboundMulticast.mPackets);
-        borderRoutingCouters->mutable_inbound_multicast()->set_byte_count(
-            otBorderRoutingCounters->mInboundMulticast.mBytes);
-        borderRoutingCouters->mutable_outbound_unicast()->set_packet_count(
-            otBorderRoutingCounters->mOutboundUnicast.mPackets);
-        borderRoutingCouters->mutable_outbound_unicast()->set_byte_count(
-            otBorderRoutingCounters->mOutboundUnicast.mBytes);
-        borderRoutingCouters->mutable_outbound_multicast()->set_packet_count(
-            otBorderRoutingCounters->mOutboundMulticast.mPackets);
-        borderRoutingCouters->mutable_outbound_multicast()->set_byte_count(
-            otBorderRoutingCounters->mOutboundMulticast.mBytes);
-        borderRoutingCouters->set_ra_rx(otBorderRoutingCounters->mRaRx);
-        borderRoutingCouters->set_ra_tx_success(otBorderRoutingCounters->mRaTxSuccess);
-        borderRoutingCouters->set_ra_tx_failure(otBorderRoutingCounters->mRaTxFailure);
-        borderRoutingCouters->set_rs_rx(otBorderRoutingCounters->mRsRx);
-        borderRoutingCouters->set_rs_tx_success(otBorderRoutingCounters->mRsTxSuccess);
-        borderRoutingCouters->set_rs_tx_failure(otBorderRoutingCounters->mRsTxFailure);
-        borderRoutingCouters->mutable_inbound_internet()->set_packet_count(
-            otBorderRoutingCounters->mInboundInternet.mPackets);
-        borderRoutingCouters->mutable_inbound_internet()->set_byte_count(
-            otBorderRoutingCounters->mInboundInternet.mBytes);
-        borderRoutingCouters->mutable_outbound_internet()->set_packet_count(
-            otBorderRoutingCounters->mOutboundInternet.mPackets);
-        borderRoutingCouters->mutable_outbound_internet()->set_byte_count(
-            otBorderRoutingCounters->mOutboundInternet.mBytes);
-
-#if OTBR_ENABLE_NAT64
-        {
-            auto nat64IcmpCounters = borderRoutingCouters->mutable_nat64_protocol_counters()->mutable_icmp();
-            auto nat64UdpCounters  = borderRoutingCouters->mutable_nat64_protocol_counters()->mutable_udp();
-            auto nat64TcpCounters  = borderRoutingCouters->mutable_nat64_protocol_counters()->mutable_tcp();
-            otNat64ProtocolCounters otCounters;
-
-            otNat64GetCounters(mInstance, &otCounters);
-            nat64IcmpCounters->set_ipv4_to_ipv6_packets(otCounters.mIcmp.m4To6Packets);
-            nat64IcmpCounters->set_ipv4_to_ipv6_bytes(otCounters.mIcmp.m4To6Bytes);
-            nat64IcmpCounters->set_ipv6_to_ipv4_packets(otCounters.mIcmp.m6To4Packets);
-            nat64IcmpCounters->set_ipv6_to_ipv4_bytes(otCounters.mIcmp.m6To4Bytes);
-            nat64UdpCounters->set_ipv4_to_ipv6_packets(otCounters.mUdp.m4To6Packets);
-            nat64UdpCounters->set_ipv4_to_ipv6_bytes(otCounters.mUdp.m4To6Bytes);
-            nat64UdpCounters->set_ipv6_to_ipv4_packets(otCounters.mUdp.m6To4Packets);
-            nat64UdpCounters->set_ipv6_to_ipv4_bytes(otCounters.mUdp.m6To4Bytes);
-            nat64TcpCounters->set_ipv4_to_ipv6_packets(otCounters.mTcp.m4To6Packets);
-            nat64TcpCounters->set_ipv4_to_ipv6_bytes(otCounters.mTcp.m4To6Bytes);
-            nat64TcpCounters->set_ipv6_to_ipv4_packets(otCounters.mTcp.m6To4Packets);
-            nat64TcpCounters->set_ipv6_to_ipv4_bytes(otCounters.mTcp.m6To4Bytes);
-        }
-
-        {
-            auto                 errorCounters = borderRoutingCouters->mutable_nat64_error_counters();
-            otNat64ErrorCounters otCounters;
-            otNat64GetErrorCounters(mInstance, &otCounters);
-
-            errorCounters->mutable_unknown()->set_ipv4_to_ipv6_packets(
-                otCounters.mCount4To6[OT_NAT64_DROP_REASON_UNKNOWN]);
-            errorCounters->mutable_unknown()->set_ipv6_to_ipv4_packets(
-                otCounters.mCount6To4[OT_NAT64_DROP_REASON_UNKNOWN]);
-            errorCounters->mutable_illegal_packet()->set_ipv4_to_ipv6_packets(
-                otCounters.mCount4To6[OT_NAT64_DROP_REASON_ILLEGAL_PACKET]);
-            errorCounters->mutable_illegal_packet()->set_ipv6_to_ipv4_packets(
-                otCounters.mCount6To4[OT_NAT64_DROP_REASON_ILLEGAL_PACKET]);
-            errorCounters->mutable_unsupported_protocol()->set_ipv4_to_ipv6_packets(
-                otCounters.mCount4To6[OT_NAT64_DROP_REASON_UNSUPPORTED_PROTO]);
-            errorCounters->mutable_unsupported_protocol()->set_ipv6_to_ipv4_packets(
-                otCounters.mCount6To4[OT_NAT64_DROP_REASON_UNSUPPORTED_PROTO]);
-            errorCounters->mutable_no_mapping()->set_ipv4_to_ipv6_packets(
-                otCounters.mCount4To6[OT_NAT64_DROP_REASON_NO_MAPPING]);
-            errorCounters->mutable_no_mapping()->set_ipv6_to_ipv4_packets(
-                otCounters.mCount6To4[OT_NAT64_DROP_REASON_NO_MAPPING]);
-        }
-#endif // OTBR_ENABLE_NAT64
-       // End of BorderRoutingCounters section.
 
 #if OTBR_ENABLE_TREL
         // Begin of TrelInfo section.
@@ -1434,6 +1431,7 @@ otError ThreadHelper::RetrieveTelemetryData(Mdns::Publisher *aPublisher, threadn
 #endif // OTBR_ENABLE_TREL
 
 #if OTBR_ENABLE_BORDER_ROUTING
+        RetrieveBorderRoutingCounters(*wpanBorderRouter->mutable_border_routing_counters());
         RetrieveInfraLinkInfo(*wpanBorderRouter->mutable_infra_link_info());
         RetrieveExternalRouteInfo(*wpanBorderRouter->mutable_external_route_info());
 #endif
