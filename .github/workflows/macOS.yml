@@ -56,6 +56,7 @@ jobs:
         brew update
         brew reinstall boost cmake dbus jsoncpp ninja protobuf@21 pkg-config
         brew upgrade node
+        echo "CMAKE_MAKE_PROGRAM=$(which ninja)" >> $GITHUB_ENV
     - name: Build
       run: |
         OTBR_OPTIONS="-DOTBR_BORDER_AGENT=OFF \
@@ -64,4 +65,4 @@ jobs:
                       -DOTBR_DNSSD_DISCOVERY_PROXY=OFF \
                       -DOTBR_TREL=OFF \
                       -DOT_FIREWALL=OFF \
-                      -DOTBR_DBUS=OFF" ./script/test build
+                      -DOTBR_DBUS=OFF ./script/test build
