@@ -226,6 +226,7 @@ private:
         {
         }
 
+        void      Release(void);
         void      Resolve(void);
         otbrError GetAddrInfo(uint32_t aInterfaceIndex);
         void      FinishResolution(void);
@@ -282,6 +283,7 @@ private:
         {
         }
 
+        void Release(void);
         void Browse(void);
         void Resolve(uint32_t           aNetifIndex,
                      const std::string &aInstanceName,
@@ -320,6 +322,7 @@ private:
         {
         }
 
+        void        Release(void);
         void        Resolve(void);
         static void HandleResolveResult(DNSServiceRef          aServiceRef,
                                         DNSServiceFlags        aFlags,

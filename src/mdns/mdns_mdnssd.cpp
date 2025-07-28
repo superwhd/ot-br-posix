@@ -1071,6 +1071,12 @@ exit:
     return;
 }
 
+void PublisherMDnsSd::ServiceSubscription::Release(void)
+{
+    mResolvingInstances.clear();
+    ServiceRef::Release();
+}
+
 void PublisherMDnsSd::ServiceSubscription::Browse(void)
 {
     assert(mServiceRef == nullptr);
@@ -1120,7 +1126,14 @@ void PublisherMDnsSd::ServiceSubscription::HandleBrowseResult(DNSServiceRef     
     }
 
 exit:
-    if (aErrorCode != kDNSServiceErr_NoError)
+    if (IsRetryableError(aErrorCode))
+    {
+        otbrLogInfo("Re-browse service %s.%s on the retryable error: %s", aInstanceName, aType,
+                    DNSErrorToString(aErrorCode));
+        Release();
+        Browse();
+    }
+    else if (aErrorCode != kDNSServiceErr_NoError)
     {
         mPublisher.OnServiceResolveFailed(mType, mInstanceName, aErrorCode);
         Release();
@@ -1156,6 +1169,12 @@ void PublisherMDnsSd::ServiceSubscription::ProcessAll(const MainloopContext     
     {
         instance->Process(aMainloop, aReadyServices);
     }
+}
+
+void PublisherMDnsSd::ServiceInstanceResolution::Release(void)
+{
+    mInstanceInfo = {};
+    ServiceRef::Release();
 }
 
 void PublisherMDnsSd::ServiceInstanceResolution::Resolve(void)
@@ -1224,7 +1243,14 @@ exit:
         otbrLogWarning("Failed to resolve service instance %s", aFullName);
     }
 
-    if (aErrorCode != kDNSServiceErr_NoError || error != OTBR_ERROR_NONE)
+    if (IsRetryableError(aErrorCode))
+    {
+        otbrLogInfo("Re-resolve service instance %s on the retryable error: %s", aFullName,
+                    DNSErrorToString(aErrorCode));
+        Release();
+        Resolve();
+    }
+    else if (aErrorCode != kDNSServiceErr_NoError || error != OTBR_ERROR_NONE)
     {
         mSubscription->mPublisher.OnServiceResolveFailed(mSubscription->mType, mInstanceName, aErrorCode);
         FinishResolution();
@@ -1304,7 +1330,14 @@ void PublisherMDnsSd::ServiceInstanceResolution::HandleGetAddrInfoResult(DNSServ
     mInstanceInfo.mTtl = aTtl;
 
 exit:
-    if ((!mInstanceInfo.mAddresses.empty() && !moreComing) || aErrorCode != kDNSServiceErr_NoError)
+    if (IsRetryableError(aErrorCode))
+    {
+        otbrLogInfo("Re-resolve service instance %s on the retryable error: %s", mInstanceInfo.mName.c_str(),
+                    DNSErrorToString(aErrorCode));
+        Release();
+        GetAddrInfo(aInterfaceIndex);
+    }
+    else if ((!mInstanceInfo.mAddresses.empty() && !moreComing) || aErrorCode != kDNSServiceErr_NoError)
     {
         FinishResolution();
     }
@@ -1318,6 +1351,13 @@ void PublisherMDnsSd::ServiceInstanceResolution::FinishResolution(void)
 
     // NOTE: The `ServiceSubscription` object may be freed in `OnServiceResolved`.
     subscription->mPublisher.OnServiceResolved(serviceName, instanceInfo);
+}
+
+void PublisherMDnsSd::HostSubscription::Release()
+{
+    mHostName.clear();
+    mHostInfo = {};
+    ServiceRef::Release();
 }
 
 void PublisherMDnsSd::HostSubscription::Resolve(void)
@@ -1387,7 +1427,13 @@ void PublisherMDnsSd::HostSubscription::HandleResolveResult(DNSServiceRef       
     mHostInfo.mTtl        = aTtl;
 
 exit:
-    if (aErrorCode != kDNSServiceErr_NoError)
+    if (IsRetryableError(aErrorCode))
+    {
+        otbrLogInfo("Re-resolve host %s on the retryable error: %s", mHostName.c_str(), DNSErrorToString(aErrorCode));
+        Release();
+        Resolve();
+    }
+    else if (aErrorCode != kDNSServiceErr_NoError)
     {
         mPublisher.OnHostResolveFailed(aHostName, aErrorCode);
     }
